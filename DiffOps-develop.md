@@ -10,15 +10,15 @@
 
 | Campo | Valor |
 |---|---|
-| Fase atual | **B — Fundação** (em andamento — U1 scaffold Laravel 12 concluída) |
-| Próxima fase | U2: Inertia/React/Tailwind · U3: config/DB · U4: docker-compose + migrations |
+| Fase atual | **B — Fundação** (em andamento — U2 Inertia/React/Tailwind concluída) |
+| Próxima fase | U3: config/DB · U4: docker-compose + migrations |
 | Stack | Laravel 12 · Inertia/React/Tailwind · Expo/NativeWind · Supabase Cloud · Redis/Horizon · OpenRouter |
 | Supabase | projeto `qkrsrfrlwclzloqjisdr.supabase.co` (DB + Auth + Realtime) |
 | Testes | Pest · Vitest/RTL · jest-expo/RNTL |
 | Pipeline | PLANNER → BUILDER → TESTER → ORCHESTRATOR (skill `pipeline`) |
 
 **Checklist funcional (concluído ✅ / pendente ⬜):**
-- ⬜ Scaffold Laravel 12 + Inertia/React + Tailwind
+- ✅ Scaffold Laravel 12 + Inertia/React + Tailwind
 - ⬜ docker-compose (php-fpm, nginx, redis, horizon)
 - ⬜ Migrations + RLS + triggers
 - ⬜ Autenticação JWT (VerifySupabaseJwt, guard, RBAC)
@@ -74,6 +74,7 @@
 > **Módulo** — arquivos-chave — como testar — observações
 
 - **Scaffold Laravel 12 (U1 Fase B)** — árvore oficial `laravel/laravel 12.66.0` no root do repo (composer create-project via tar; `.gitignore` raiz e internos recriados do scaffold oficial); Pest 3.8 instalado (substitui PHPUnit como runner padrão); smoke test em `tests/Feature/ScaffoldSmokeTest.php` (boot 12.x, GET / 200, manifest.json do Vite). Como testar: `php artisan test` → 5 testes verdes.
+- **Integração Inertia/React/Tailwind (U2 Fase B)** — `inertiajs/inertia-laravel` ^3.3 (composer) + `@inertiajs/react` 3.6.1 + `@vitejs/plugin-react` 5.2.0 + React 19.2.8 (npm); stack: `resources/views/app.blade.php` (root `@inertia` + `@vite`), `resources/js/app.jsx` (bootstrap Inertia), `resources/js/Pages/Welcome.jsx` (header mínimo TACTICAL OPS: título `DiffOps` + subtítulo pt-BR, paleta obsidian/asphalt/bone/comms-cyan), `app/Http/Middleware/HandleInertiaRequests.php` registrado no grupo `web` em `bootstrap/app.php`, `config/inertia.php` publicado (path ajustado para `resources/js/Pages`), `routes/web.php` → `Inertia::render('Welcome', ['appName' => 'DiffOps'])`, Tailwind 4 já vinha no skeleton (`@import "tailwindcss"` + plugin `@tailwindcss/vite`; adicionado `@source '../**/*.jsx'`). Como testar: `php artisan test` → 7 testes verdes (smoke + 2 Inertia).
 
 ---
 
@@ -81,7 +82,7 @@
 
 > Registrar aqui TODA divergência entre o código real e o `DiffOps.md`, com motivo.
 
-- _(nenhum desvio registrado)_
+- **`php artisan inertia:install react` não existe no inertia-laravel v3** (comando removido) → instalação manual equivalente: `php artisan inertia:middleware` + registro do `HandleInertiaRequests` no grupo `web` + npm `@inertiajs/react` + `@vitejs/plugin-react` + `vite.config.js` com plugin react e input `resources/js/app.jsx` + `app.blade.php` + `Welcome.jsx` (o plano já previa este caminho alternativo).
 
 ---
 
@@ -93,6 +94,8 @@
 - **`create-project` não entrega os `.gitignore` internos** (bootstrap/cache, database, storage/*) → sem eles, `packages.php`/`services.php`/`database.sqlite`/views compiladas seriam versionados. Recriados manualmente a partir do repo oficial `laravel/laravel@12.x`.
 - **Scaffold Laravel 12 usa PHPUnit**; para Pest é preciso `composer require pestphp/pest pestphp/pest-plugin-laravel --dev` e criar `tests/Pest.php` manualmente (`php artisan pest:install` não existe no plugin-laravel 3.2).
 - **Driver sqlite ausente localmente** → `php artisan migrate` falha no host (aviso `could not find driver`) durante o create-project; irrelevante para testes (`:memory:` só é usado se houver DB, e os testes U1 não tocam banco).
+- **`@vitejs/plugin-react@6` exige Vite 8** (peer dep) mas o skeleton usa Vite 7 → fixar `@vitejs/plugin-react@^5` (5.2.0), compatível com Vite 7.
+- **Path das páginas Inertia no config publicado é `resource_path('js/pages')` (minúsculo)** e o dir real é `resources/js/Pages` (maiúsculo, convenção React) → `assertInertia` falhava com "page component does not exist" até ajustar o path no `config/inertia.php` publicado.
 
 ---
 
@@ -112,6 +115,7 @@
 
 | Data | O que mudou | Quem/Agente | Fase |
 |---|---|---|---|
+| 2026-08-15 | Fase B U2 concluída (branch `@carlosegoulart/02/feat/foundation`, commit `1ab382d`): Inertia Laravel ^3.3 + React 19 + Tailwind 4 integrados; app.blade.php root, app.jsx bootstrap, Welcome.jsx (header TACTICAL OPS `DiffOps`), HandleInertiaRequests no grupo web, config/inertia.php publicado (path `resources/js/Pages`), rota `/` → Inertia::render('Welcome', appName='DiffOps'); smoke suite ampliada para 7 testes verdes (2 Inertia novos); desvio: `inertia:install` removido no v3 → instalação manual | opencode (builder) | B |
 | 2026-08-15 | Fase B U1 concluída: scaffold Laravel 12.66 no root (branch `@carlosegoulart/02/feat/foundation`, commits 8d134b7 + 7dcbaf3); Pest 3.8 + tests/Pest.php; ScaffoldSmokeTest verde (5 testes); pdo_pgsql/pdo_sqlite ausentes localmente; rsync→tar por indisponibilidade | opencode (builder) | B |
 | 2026-08-15 | Fase A concluída: branch `@carlosegoulart/01/chore/setup-foundations` com 5 commits atômicos (DiffOps.md v2.0, DiffOps-develop.md, agentes, skills, AGENTS.md+opencode.json); identidade git local: CarlosEGoulart / goulart193@gmail.com | opencode (build) | A |
 | 2026-08-15 | Criação do documento vivo; definição de Fase A (mecanismos: agentes, skills, AGENTS.md, opencode.json); blueprint final gravado em DiffOps.md | opencode (build) | A |
