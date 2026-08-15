@@ -15,3 +15,14 @@ it('serves the root route', function (): void {
 it('compiles the frontend assets', function (): void {
     expect(File::exists(public_path('build/manifest.json')))->toBeTrue();
 });
+
+it('renders the Welcome page through Inertia', function (): void {
+    $this->get('/')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page->component('Welcome'));
+});
+
+it('exposes the DiffOps app name to the page', function (): void {
+    $this->get('/')
+        ->assertInertia(fn ($page) => $page->component('Welcome')->where('appName', 'DiffOps'));
+});
