@@ -10,7 +10,7 @@
 
 | Campo | Valor |
 |---|---|
-| Fase atual | **A — Mecanismos** (iniciada) |
+| Fase atual | **A — Mecanismos** (concluída) |
 | Próxima fase | B — Fundação (Laravel 12 + Inertia/Tailwind + docker-compose + migrations) |
 | Stack | Laravel 12 · Inertia/React/Tailwind · Expo/NativeWind · Supabase Cloud · Redis/Horizon · OpenRouter |
 | Supabase | projeto `qkrsrfrlwclzloqjisdr.supabase.co` (DB + Auth + Realtime) |
@@ -105,4 +105,5 @@ _(preenchidos conforme a Fase B for executada — ex.: `composer create-project`
 
 | Data | O que mudou | Quem/Agente | Fase |
 |---|---|---|---|
+| 2026-08-15 | Fase A concluída: branch `@carlosegoulart/01/chore/setup-foundations` com 5 commits atômicos (DiffOps.md v2.0, DiffOps-develop.md, agentes, skills, AGENTS.md+opencode.json); identidade git local: CarlosEGoulart / goulart193@gmail.com | opencode (build) | A |
 | 2026-08-15 | Criação do documento vivo; definição de Fase A (mecanismos: agentes, skills, AGENTS.md, opencode.json); blueprint final gravado em DiffOps.md | opencode (build) | A |
