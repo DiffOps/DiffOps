@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |---|---|
-| Fase atual | **A — Mecanismos** (concluída) |
-| Próxima fase | B — Fundação (Laravel 12 + Inertia/Tailwind + docker-compose + migrations) |
+| Fase atual | **B — Fundação** (em andamento — U1 scaffold Laravel 12 concluída) |
+| Próxima fase | U2: Inertia/React/Tailwind · U3: config/DB · U4: docker-compose + migrations |
 | Stack | Laravel 12 · Inertia/React/Tailwind · Expo/NativeWind · Supabase Cloud · Redis/Horizon · OpenRouter |
 | Supabase | projeto `qkrsrfrlwclzloqjisdr.supabase.co` (DB + Auth + Realtime) |
 | Testes | Pest · Vitest/RTL · jest-expo/RNTL |
@@ -42,10 +42,14 @@
 - `APP_URL` (HTTPS obrigatório para webhook do GitHub)
 
 ### Comandos úteis
-_(preenchidos conforme a Fase B for executada — ex.: `composer create-project`, `docker compose up`, `php artisan migrate`, `php artisan test`…)_
+- Scaffold Laravel 12: `composer create-project laravel/laravel:^12.0 /tmp/scaffold --prefer-dist --no-interaction` (PHP 8.3.6 · Composer 2.10.2 locais)
+- Dependências: `composer install` · `npm install && npm run build` (Vite 7 → `public/build/manifest.json`)
+- Testes: `php artisan test` (Pest 3.8 via plugin-laravel 3.2)
+- Observação local: **`pdo_pgsql` e `pdo_sqlite` NÃO instalados** no PHP local (U3/U4: configurar via docker ou instalar ext)
 
 ### Serviços locais
-- docker-compose: php-fpm, nginx, redis, horizon worker (a definir na Fase B)
+- docker-compose: php-fpm, nginx, redis, horizon worker (a definir na U4)
+- Extensões PHP ausentes localmente: pdo_pgsql, pdo_sqlite (impacta `migrate` local até a containerização)
 
 ---
 
@@ -69,7 +73,7 @@ _(preenchidos conforme a Fase B for executada — ex.: `composer create-project`
 > Preenchido pela skill `diffops-develop` a cada entrega. Formato:
 > **Módulo** — arquivos-chave — como testar — observações
 
-- _(nada implementado ainda — Fase A é a criação dos mecanismos de desenvolvimento)_
+- **Scaffold Laravel 12 (U1 Fase B)** — árvore oficial `laravel/laravel 12.66.0` no root do repo (composer create-project via tar; `.gitignore` raiz e internos recriados do scaffold oficial); Pest 3.8 instalado (substitui PHPUnit como runner padrão); smoke test em `tests/Feature/ScaffoldSmokeTest.php` (boot 12.x, GET / 200, manifest.json do Vite). Como testar: `php artisan test` → 5 testes verdes.
 
 ---
 
@@ -85,7 +89,10 @@ _(preenchidos conforme a Fase B for executada — ex.: `composer create-project`
 
 > Registro contínuo de problemas encontrados e soluções (rate limits, config, bugs).
 
-- _(vazio)_
+- **`rsync` ausente** no ambiente → substituído por `tar -C <src> -cf - . | tar -C <dest> -xf -` com os mesmos `--exclude` (Fase A intacta, verificado via `git diff`).
+- **`create-project` não entrega os `.gitignore` internos** (bootstrap/cache, database, storage/*) → sem eles, `packages.php`/`services.php`/`database.sqlite`/views compiladas seriam versionados. Recriados manualmente a partir do repo oficial `laravel/laravel@12.x`.
+- **Scaffold Laravel 12 usa PHPUnit**; para Pest é preciso `composer require pestphp/pest pestphp/pest-plugin-laravel --dev` e criar `tests/Pest.php` manualmente (`php artisan pest:install` não existe no plugin-laravel 3.2).
+- **Driver sqlite ausente localmente** → `php artisan migrate` falha no host (aviso `could not find driver`) durante o create-project; irrelevante para testes (`:memory:` só é usado se houver DB, e os testes U1 não tocam banco).
 
 ---
 
@@ -105,5 +112,6 @@ _(preenchidos conforme a Fase B for executada — ex.: `composer create-project`
 
 | Data | O que mudou | Quem/Agente | Fase |
 |---|---|---|---|
+| 2026-08-15 | Fase B U1 concluída: scaffold Laravel 12.66 no root (branch `@carlosegoulart/02/feat/foundation`, commits 8d134b7 + 7dcbaf3); Pest 3.8 + tests/Pest.php; ScaffoldSmokeTest verde (5 testes); pdo_pgsql/pdo_sqlite ausentes localmente; rsync→tar por indisponibilidade | opencode (builder) | B |
 | 2026-08-15 | Fase A concluída: branch `@carlosegoulart/01/chore/setup-foundations` com 5 commits atômicos (DiffOps.md v2.0, DiffOps-develop.md, agentes, skills, AGENTS.md+opencode.json); identidade git local: CarlosEGoulart / goulart193@gmail.com | opencode (build) | A |
 | 2026-08-15 | Criação do documento vivo; definição de Fase A (mecanismos: agentes, skills, AGENTS.md, opencode.json); blueprint final gravado em DiffOps.md | opencode (build) | A |
