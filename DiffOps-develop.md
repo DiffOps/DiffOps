@@ -10,8 +10,8 @@
 
 | Campo | Valor |
 |---|---|
-| Fase atual | **B — Fundação** (em andamento — U2 Inertia/React/Tailwind concluída) |
-| Próxima fase | U3: config/DB · U4: docker-compose + migrations |
+| Fase atual | **B — Fundação** (em andamento — U3 Supabase/env concluída) |
+| Próxima fase | U4: docker-compose + migrations |
 | Stack | Laravel 12 · Inertia/React/Tailwind · Expo/NativeWind · Supabase Cloud · Redis/Horizon · OpenRouter |
 | Supabase | projeto `qkrsrfrlwclzloqjisdr.supabase.co` (DB + Auth + Realtime) |
 | Testes | Pest · Vitest/RTL · jest-expo/RNTL |
@@ -19,6 +19,7 @@
 
 **Checklist funcional (concluído ✅ / pendente ⬜):**
 - ✅ Scaffold Laravel 12 + Inertia/React + Tailwind
+- ✅ Config ambiente: Supabase Postgres (pgsql + SSL) + suíte de teste offline (sqlite :memory:/array/sync)
 - ⬜ docker-compose (php-fpm, nginx, redis, horizon)
 - ⬜ Migrations + RLS + triggers
 - ⬜ Autenticação JWT (VerifySupabaseJwt, guard, RBAC)
@@ -34,18 +35,24 @@
 ## 2. SETUP DO AMBIENTE
 
 ### Credenciais (.env — NUNCA versionar)
-- `DB_*` → Supabase `qkrsrfrlwclzloqjisdr` (host `db.qkrsrfrlwclzloqjisdr.supabase.co`)
+- `DB_*` → Supabase `qkrsrfrlwclzloqjisdr` (host `db.qkrsrfrlwclzloqjisdr.supabase.co`, porta 5432, `DB_CONNECTION=pgsql`, `DB_SSLMODE=require`; `DB_PASSWORD` vazio no `.env.example` versionado)
 - `SUPABASE_SERVICE_ROLE_KEY` → **somente no servidor** (nunca em cliente web/mobile)
 - `SUPABASE_URL` → `https://qkrsrfrlwclzloqjisdr.supabase.co`
 - `GITHUB_APP_ID` / `GITHUB_APP_CLIENT_SECRET` / `GITHUB_APP_PRIVATE_KEY` / `GITHUB_WEBHOOK_SECRET`
 - `OPENROUTER_API_KEY`
 - `APP_URL` (HTTPS obrigatório para webhook do GitHub)
 
+### Variáveis `.env` definidas (nomes apenas; `.env.example` versionado contém placeholders vazios)
+- `DB_CONNECTION=pgsql` · `DB_HOST=db.qkrsrfrlwclzloqjisdr.supabase.co` · `DB_PORT=5432` · `DB_DATABASE=postgres` · `DB_USERNAME=postgres` · `DB_PASSWORD=` · `DB_SSLMODE=require`
+- `CACHE_STORE=redis` · `SESSION_DRIVER=redis` · `QUEUE_CONNECTION=redis` · `REDIS_HOST=127.0.0.1` · `REDIS_PORT=6379` · `REDIS_CLIENT=predis`
+- Suíte de teste (forçado no `phpunit.xml`, independente de `.env`): `DB_CONNECTION=sqlite` · `DB_DATABASE=:memory:` · `CACHE_STORE=array` · `SESSION_DRIVER=array` · `QUEUE_CONNECTION=sync`
+
 ### Comandos úteis
 - Scaffold Laravel 12: `composer create-project laravel/laravel:^12.0 /tmp/scaffold --prefer-dist --no-interaction` (PHP 8.3.6 · Composer 2.10.2 locais)
 - Dependências: `composer install` · `npm install && npm run build` (Vite 7 → `public/build/manifest.json`)
 - Testes: `php artisan test` (Pest 3.8 via plugin-laravel 3.2)
-- Observação local: **`pdo_pgsql` e `pdo_sqlite` NÃO instalados** no PHP local (U3/U4: configurar via docker ou instalar ext)
+- Config env: `cp .env.example .env` → `php artisan key:generate` (`.env` nunca é versionado)
+- Observação local: **`pdo_pgsql` e `pdo_sqlite` NÃO instalados** no PHP local; os testes de config da U3 leem apenas `config()` e não conectam no banco (rodam sem driver)
 
 ### Serviços locais
 - docker-compose: php-fpm, nginx, redis, horizon worker (a definir na U4)
@@ -75,6 +82,7 @@
 
 - **Scaffold Laravel 12 (U1 Fase B)** — árvore oficial `laravel/laravel 12.66.0` no root do repo (composer create-project via tar; `.gitignore` raiz e internos recriados do scaffold oficial); Pest 3.8 instalado (substitui PHPUnit como runner padrão); smoke test em `tests/Feature/ScaffoldSmokeTest.php` (boot 12.x, GET / 200, manifest.json do Vite). Como testar: `php artisan test` → 5 testes verdes.
 - **Integração Inertia/React/Tailwind (U2 Fase B)** — `inertiajs/inertia-laravel` ^3.3 (composer) + `@inertiajs/react` 3.6.1 + `@vitejs/plugin-react` 5.2.0 + React 19.2.8 (npm); stack: `resources/views/app.blade.php` (root `@inertia` + `@vite`), `resources/js/app.jsx` (bootstrap Inertia), `resources/js/Pages/Welcome.jsx` (header mínimo TACTICAL OPS: título `DiffOps` + subtítulo pt-BR, paleta obsidian/asphalt/bone/comms-cyan), `app/Http/Middleware/HandleInertiaRequests.php` registrado no grupo `web` em `bootstrap/app.php`, `config/inertia.php` publicado (path ajustado para `resources/js/Pages`), `routes/web.php` → `Inertia::render('Welcome', ['appName' => 'DiffOps'])`, Tailwind 4 já vinha no skeleton (`@import "tailwindcss"` + plugin `@tailwindcss/vite`; adicionado `@source '../**/*.jsx'`). Como testar: `php artisan test` → 7 testes verdes (smoke + 2 Inertia).
+- **Config Supabase Postgres + ambiente de teste (U3 Fase B)** — `.env.example` minimalista versionado (nomes + placeholders vazios, `DB_CONNECTION=pgsql`, host `db.qkrsrfrlwclzloqjisdr.supabase.co`, `DB_SSLMODE=require`, redis para cache/session/queue) + `.env` gerado via `cp` + `key:generate` (não versionado); `config/database.php`: `'default' => env('DB_CONNECTION', 'pgsql')` e pgsql `'sslmode' => env('DB_SSLMODE', 'require')`; `phpunit.xml` já forçava sqlite/:memory:/array/sync (scaffold Laravel 12.66 — sem mudança necessária). Como testar: `php artisan test` → 12 testes verdes (5 novos `EnvConfigTest`: default pgsql no app env, sqlite :memory: na suíte, host supabase.co, sslmode require, offline sync/array).
 
 ---
 
@@ -83,6 +91,7 @@
 > Registrar aqui TODA divergência entre o código real e o `DiffOps.md`, com motivo.
 
 - **`php artisan inertia:install react` não existe no inertia-laravel v3** (comando removido) → instalação manual equivalente: `php artisan inertia:middleware` + registro do `HandleInertiaRequests` no grupo `web` + npm `@inertiajs/react` + `@vitejs/plugin-react` + `vite.config.js` com plugin react e input `resources/js/app.jsx` + `app.blade.php` + `Welcome.jsx` (o plano já previa este caminho alternativo).
+- **Plano U3 presumia skeleton com default mysql e phpunit.xml sem overrides** — na real, o scaffold Laravel 12.66 usa `env('DB_CONNECTION', 'sqlite')` e o `phpunit.xml` JÁ força sqlite/:memory:/array/sync. Consequência: (1) os testes de "sqlite na suíte" e "offline" nasceram verdes (não red); (2) o teste do default pgsql precisa simular o app env (limpando temporariamente `DB_CONNECTION` e relendo `config/database.php`) porque o override do phpunit.xml esconderia o fallback.
 
 ---
 
@@ -96,6 +105,8 @@
 - **Driver sqlite ausente localmente** → `php artisan migrate` falha no host (aviso `could not find driver`) durante o create-project; irrelevante para testes (`:memory:` só é usado se houver DB, e os testes U1 não tocam banco).
 - **`@vitejs/plugin-react@6` exige Vite 8** (peer dep) mas o skeleton usa Vite 7 → fixar `@vitejs/plugin-react@^5` (5.2.0), compatível com Vite 7.
 - **Path das páginas Inertia no config publicado é `resource_path('js/pages')` (minúsculo)** e o dir real é `resources/js/Pages` (maiúsculo, convenção React) → `assertInertia` falhava com "page component does not exist" até ajustar o path no `config/inertia.php` publicado.
+- **Testar fallback de `config/database.php` sob override do phpunit.xml** — `env('DB_CONNECTION', 'pgsql')` nunca é observável via `config()` na suíte porque o phpunit.xml força sqlite; solução: remover temporariamente `DB_CONNECTION` de `$_ENV`/`$_SERVER`/`getenv()`, `require` o arquivo de config e restaurar em `finally` (teste isolado, sem efeito colateral na suíte).
+- **Testes de config rodam sem `pdo_sqlite`/`pdo_pgsql`** — a U3 valida apenas `config()`, nunca conecta; quando a U4 trouxer docker-compose (php-fpm com drivers), `migrate` e testes que tocam banco passam a rodar no container.
 
 ---
 
@@ -115,6 +126,7 @@
 
 | Data | O que mudou | Quem/Agente | Fase |
 |---|---|---|---|
+| 2026-08-15 | Fase B U3 concluída (branch `@carlosegoulart/02/feat/foundation`, commit `7593d3c`): `.env.example` minimalista com Supabase Postgres (pgsql, host `db.qkrsrfrlwclzloqjisdr.supabase.co`, `DB_SSLMODE=require`, placeholders vazios) + `.env` local gerado (`key:generate`, não versionado); `config/database.php`: default `pgsql` e sslmode `require`; `phpunit.xml` já forçava sqlite/:memory:/array/sync (sem mudança); novo `tests/Unit/EnvConfigTest.php` (5 testes) validando config pgsql/Supabase e suíte offline; suíte 12 testes verdes (29 assertions); desvios: skeleton 12.66 já era sqlite (não mysql) e phpunit já forçava overrides → 2 testes nasceram verdes; teste do default pgsql simula app env limpando `DB_CONNECTION` | opencode (builder) | B |
 | 2026-08-15 | Fase B U2 concluída (branch `@carlosegoulart/02/feat/foundation`, commit `1ab382d`): Inertia Laravel ^3.3 + React 19 + Tailwind 4 integrados; app.blade.php root, app.jsx bootstrap, Welcome.jsx (header TACTICAL OPS `DiffOps`), HandleInertiaRequests no grupo web, config/inertia.php publicado (path `resources/js/Pages`), rota `/` → Inertia::render('Welcome', appName='DiffOps'); smoke suite ampliada para 7 testes verdes (2 Inertia novos); desvio: `inertia:install` removido no v3 → instalação manual | opencode (builder) | B |
 | 2026-08-15 | Fase B U1 concluída: scaffold Laravel 12.66 no root (branch `@carlosegoulart/02/feat/foundation`, commits 8d134b7 + 7dcbaf3); Pest 3.8 + tests/Pest.php; ScaffoldSmokeTest verde (5 testes); pdo_pgsql/pdo_sqlite ausentes localmente; rsync→tar por indisponibilidade | opencode (builder) | B |
 | 2026-08-15 | Fase A concluída: branch `@carlosegoulart/01/chore/setup-foundations` com 5 commits atômicos (DiffOps.md v2.0, DiffOps-develop.md, agentes, skills, AGENTS.md+opencode.json); identidade git local: CarlosEGoulart / goulart193@gmail.com | opencode (build) | A |
