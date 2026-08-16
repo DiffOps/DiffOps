@@ -14,7 +14,7 @@ Este arquivo é carregado automaticamente por todos os agentes do opencode neste
 3. **Documentação viva**: ao concluir qualquer trabalho, use a skill `diffops-develop` para atualizar/corrigir o `DiffOps-develop.md` (histórico append-only, sem segredos).
 4. **Git**: use a skill `git-workflow` — branches `@<user>/<num>/<tipo>/<descricao>`, Conventional Commits **atômicos** (1 unidade lógica = 1 commit, suíte verde).
 5. **Push**: NUNCA executar `git push` sem autorização explícita do usuário.
-6. **Main**: nunca commitar diretamente em `main`.
+6. **Main**: nunca commitar/mergear diretamente em `main`; **toda integração é via Pull Request** (aberta pelo ORCHESTRATOR, revisada e mergeada pelo usuário).
 7. **Segredos**: nunca escrever chaves/tokens/credenciais em arquivos versionados; usar apenas variáveis `.env` (por nome).
 8. **Arquitetura**: seguir o padrão Laravel 12 (diretórios do scaffold — `DiffOps.md` §5). Não criar estruturas customizadas.
 9. **Design**: seguir o Design System TACTICAL OPS (`DiffOps.md` §7) em web e mobile.

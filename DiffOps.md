@@ -404,6 +404,7 @@ Tokens idênticos (NativeWind) via `theme/tokens.ts`.
 3. Commits atômicos e convencionais permitidos sem autorização (skill `git-workflow`).
 4. **Push apenas com autorização explícita do usuário.**
 5. Manter `DiffOps-develop.md` atualizado (skill `diffops-develop`).
+6. **Integração em `main` exclusivamente via Pull Request** (revisada e mergeada pelo usuário).
 
 ### 17.4 Fluxo da pipeline
 ```
@@ -414,12 +415,16 @@ PLANNER ──plano──▶ BUILDER ──código+testes──▶ TESTER ──
                                                                   │ testa / autoriza
                                                                   ▼
                                                               PUSH (somente autorizado)
+                                                                  │
+                                                                  ▼
+                                               ORCHESTRATOR abre a PR (base main) ──▶ USUÁRIO revisa e mergeia
 ```
 
 ### 17.5 Regras de bloqueio
 - TESTER não aprova com vermelho.
 - BUILDER não pula mockups/testes.
 - ORCHESTRATOR não faz push; não commita em `main`; commit "gordo" é dividido.
+- **Nenhum agente mergeia em `main`** — merge somente via PR pelo usuário.
 - Nenhum agente altera `DiffOps.md` sem aprovação do plano.
 
 ---
@@ -433,7 +438,7 @@ PLANNER ──plano──▶ BUILDER ──código+testes──▶ TESTER ──
   - Tela: `feat(TacticalFeed): build header` → `feat(TacticalFeed): build menu` → `feat(TacticalFeed): build body`
   - `fix(VerifySupabaseJwt): handle key rotation`
 - Convencionais com escopo (`feat|fix(scope): subject`), `!` para breaking change, corpo quando necessário.
-- **Push:** apenas com autorização; merge em `main` via PR local revisada pelo usuário.
+- **Push:** apenas com autorização; após o push, ORCHESTRATOR abre a **Pull Request** (base `main`); **merge em `main` exclusivamente via PR** revisada e mergeada pelo usuário (proibido merge local direto por agentes).
 
 ---
 
