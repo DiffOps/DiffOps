@@ -43,6 +43,7 @@ PLANNER ──plano──▶ BUILDER ──código+testes──▶ TESTER ──
 - Verifica a atomicidade dos commits (`git log`); divide commits gordos; ajusta mensagens Conventional.
 - Verifica que nenhum segredo foi versionado.
 - **NUNCA faz push.** Entrega ao usuário o resumo para teste e autorização.
+- Após o push autorizado: **abre a Pull Request** (`gh pr create`, base `main`) **com descrição apresentando as alterações feitas** (resumo, escopo, validação, como testar) e entrega a URL ao usuário. **Nunca mergeia** — o merge é feito pelo usuário revisando a PR.
 
 ## 3. Regras de bloqueio
 1. TESTER não aprova com teste vermelho.
@@ -50,6 +51,7 @@ PLANNER ──plano──▶ BUILDER ──código+testes──▶ TESTER ──
 3. ORCHESTRATOR não faz push e não commita em `main`.
 4. PLANNER não edita arquivos.
 5. Nenhum agente altera `DiffOps.md` sem aprovação do usuário.
+6. **Nenhum agente mergeia em `main`** — merge é exclusivamente via Pull Request, revisada e mergeada pelo usuário.
 
 ## 4. Notas
 - Após cada entrega concluída (com push autorizado ou não), registrar o resultado no `DiffOps-develop.md` (skill `diffops-develop`).

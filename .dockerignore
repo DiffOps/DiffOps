@@ -1,0 +1,11 @@
+.git
+.opencode
+node_modules
+vendor
+.env
+.env.*
+public/build
+storage/logs
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*

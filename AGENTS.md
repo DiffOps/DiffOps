@@ -14,7 +14,8 @@ Este arquivo é carregado automaticamente por todos os agentes do opencode neste
 3. **Documentação viva**: ao concluir qualquer trabalho, use a skill `diffops-develop` para atualizar/corrigir o `DiffOps-develop.md` (histórico append-only, sem segredos).
 4. **Git**: use a skill `git-workflow` — branches `@<user>/<num>/<tipo>/<descricao>`, Conventional Commits **atômicos** (1 unidade lógica = 1 commit, suíte verde).
 5. **Push**: NUNCA executar `git push` sem autorização explícita do usuário.
-6. **Main**: nunca commitar diretamente em `main`.
+6. **Main**: nunca commitar/mergear diretamente em `main`. **Merge em `main` é EXCLUSIVAMENTE via Pull Request**: o ORCHESTRATOR abre a PR (base `main`) após o push autorizado, e o **usuário revisa e mergeia** — nenhum agente mergeia.
+7. **PR com descrição**: toda PR aberta pelo ORCHESTRATOR DEVE ter **descrição apresentando as alterações feitas** (resumo das mudanças, unidades entregues, validação/testes, como testar).
 7. **Segredos**: nunca escrever chaves/tokens/credenciais em arquivos versionados; usar apenas variáveis `.env` (por nome).
 8. **Arquitetura**: seguir o padrão Laravel 12 (diretórios do scaffold — `DiffOps.md` §5). Não criar estruturas customizadas.
 9. **Design**: seguir o Design System TACTICAL OPS (`DiffOps.md` §7) em web e mobile.
@@ -26,3 +27,4 @@ Este arquivo é carregado automaticamente por todos os agentes do opencode neste
 - Laravel é o único escritor; service role exclusiva no servidor; clientes só leem.
 - IA: OpenRouter (DeepSeek free + fallbacks) com heurística local como âncora/fallback.
 - Testes: Pest (backend) · Vitest/RTL (web) · jest-expo/RNTL (mobile).
+- Merge: exclusivamente via Pull Request; agente abre a PR, usuário revisa e mergeia.

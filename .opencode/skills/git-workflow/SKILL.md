@@ -50,13 +50,17 @@ Regras:
 - Commit gordo (múltiplas unidades) DEVE ser dividido (`git add -p`/`git reset` + recomit).
 - Nunca commitar arquivos de ambiente/segredo (`.env`, chaves, `.env.production`).
 
-## 3. Push (política de aprovação)
+## 3. Push & Merge (política de aprovação)
 - **NUNCA** executar `git push` sem autorização explícita do usuário.
 - O fluxo: ORCHESTRATOR prepara branch + commits → apresenta resumo → **usuário testa → autoriza → push**.
-- Após push autorizado, merge em `main` via PR revisada pelo usuário.
+- Após o push autorizado, o ORCHESTRATOR **abre a Pull Request** via `gh pr create` (base: `main`, head: branch da tarefa) e entrega a URL ao usuário.
+- **Toda PR deve ter descrição apresentando as alterações feitas**: resumo das mudanças, unidades/escopo entregues, validação (testes/CI) e instruções de como testar.
+- **Merge em `main` é EXCLUSIVAMENTE via Pull Request** — proibido merge local direto (inclusive fast-forward), commits diretos em `main` ou merge por qualquer agente. Quem revisa e mergeia é o **usuário**.
+- Toda PR deve passar pelo CI (GitHub Actions) antes do merge; testes vermelhos bloqueiam o merge.
 
 ## 4. Verificação antes de finalizar
 - [ ] Branch no padrão `@user/num/tipo/descricao`
 - [ ] `git log --oneline`: 1 unidade lógica por commit, mensagens convencionais
 - [ ] `git status` limpo; sem segredos na árvore
 - [ ] Suíte de testes verde no HEAD
+- [ ] Push autorizado pelo usuário; PR aberta com base `main`; merge somente pelo usuário
