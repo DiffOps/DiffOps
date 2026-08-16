@@ -13,15 +13,15 @@ it('defines the github actions workflow file', function (): void {
     expect(File::exists(base_path('.github/workflows/ci.yml')))->toBeTrue();
 });
 
-it('runs backend and frontend jobs', function (): void {
+it('runs a self-contained ci job', function (): void {
     $yml = diffops_ci_yml();
 
     expect($yml)
-        ->toContain('backend:')
-        ->toContain('frontend:');
+        ->toContain('ci:')
+        ->not->toContain('frontend:');
 });
 
-it('executes pint and the pest suite in the backend job', function (): void {
+it('executes pint and the pest suite in the ci job', function (): void {
     $yml = diffops_ci_yml();
 
     expect($yml)
@@ -29,7 +29,7 @@ it('executes pint and the pest suite in the backend job', function (): void {
         ->toContain('php artisan test');
 });
 
-it('builds the frontend assets in the frontend job', function (): void {
+it('builds the frontend assets before the tests', function (): void {
     expect(diffops_ci_yml())->toContain('npm run build');
 });
 
