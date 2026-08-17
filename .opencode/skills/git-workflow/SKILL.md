@@ -54,7 +54,7 @@ Regras:
 - **NUNCA** executar `git push` sem autorização explícita do usuário.
 - O fluxo: ORCHESTRATOR prepara branch + commits → apresenta resumo → **usuário testa → autoriza → push**.
 - Após o push autorizado, o ORCHESTRATOR **abre a Pull Request** via `gh pr create` (base: `main`, head: branch da tarefa) e entrega a URL ao usuário.
-- **Toda PR deve ter descrição apresentando as alterações feitas**: resumo das mudanças, unidades/escopo entregues, validação (testes/CI) e instruções de como testar.
+- **Toda PR deve ter descrição apresentando as alterações feitas**: resumo das mudanças, unidades/escopo entregues, validação (testes/CI) e instruções de como testar. Se o ORCHESTRATOR não puder abrir a PR via `gh`, ele **entrega no chat o título + corpo completo da descrição** e instrui o usuário a colá-los antes do merge — **PR sem descrição não é considerada entregue**.
 - **Merge em `main` é EXCLUSIVAMENTE via Pull Request** — proibido merge local direto (inclusive fast-forward), commits diretos em `main` ou merge por qualquer agente. Quem revisa e mergeia é o **usuário**.
 - Toda PR deve passar pelo CI (GitHub Actions) antes do merge; testes vermelhos bloqueiam o merge.
 
