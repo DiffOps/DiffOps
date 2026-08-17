@@ -43,7 +43,7 @@ PLANNER ──plano──▶ BUILDER ──código+testes──▶ TESTER ──
 - Verifica a atomicidade dos commits (`git log`); divide commits gordos; ajusta mensagens Conventional.
 - Verifica que nenhum segredo foi versionado.
 - **NUNCA faz push.** Entrega ao usuário o resumo para teste e autorização.
-- Após o push autorizado: **abre a Pull Request** (`gh pr create`, base `main`) **com descrição apresentando as alterações feitas** (resumo, escopo, validação, como testar) e entrega a URL ao usuário. **Nunca mergeia** — o merge é feito pelo usuário revisando a PR.
+- Após o push autorizado: **abre a Pull Request** (`gh pr create`, base `main`) **com descrição apresentando as alterações feitas** (resumo, escopo, validação, como testar) e entrega a URL ao usuário. Se NÃO puder abrir via `gh` (ex.: sem autenticação), **entrega no chat o título + corpo completo da descrição** e instrui explicitamente o usuário a colá-los antes do merge — a PR só é entregue com a descrição fornecida. **Nunca mergeia** — o merge é feito pelo usuário revisando a PR.
 
 ## 3. Regras de bloqueio
 1. TESTER não aprova com teste vermelho.

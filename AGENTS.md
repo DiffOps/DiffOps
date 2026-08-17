@@ -15,7 +15,7 @@ Este arquivo é carregado automaticamente por todos os agentes do opencode neste
 4. **Git**: use a skill `git-workflow` — branches `@<user>/<num>/<tipo>/<descricao>`, Conventional Commits **atômicos** (1 unidade lógica = 1 commit, suíte verde).
 5. **Push**: NUNCA executar `git push` sem autorização explícita do usuário.
 6. **Main**: nunca commitar/mergear diretamente em `main`. **Merge em `main` é EXCLUSIVAMENTE via Pull Request**: o ORCHESTRATOR abre a PR (base `main`) após o push autorizado, e o **usuário revisa e mergeia** — nenhum agente mergeia.
-7. **PR com descrição**: toda PR aberta pelo ORCHESTRATOR DEVE ter **descrição apresentando as alterações feitas** (resumo das mudanças, unidades entregues, validação/testes, como testar).
+7. **PR com descrição**: TODA PR (aberta pelo ORCHESTRATOR via `gh` OU manualmente pelo usuário) DEVE ter **descrição apresentando as alterações feitas** (resumo das mudanças, unidades entregues, validação/testes, como testar). Se o ORCHESTRATOR não puder abrir a PR (ex.: `gh` sem autenticação), ele **deve entregar no chat o título + corpo completo da descrição** e instruir explicitamente o usuário a colá-los antes do merge — a entrega da PR só é concluída com a descrição fornecida.
 7. **Segredos**: nunca escrever chaves/tokens/credenciais em arquivos versionados; usar apenas variáveis `.env` (por nome).
 8. **Arquitetura**: seguir o padrão Laravel 12 (diretórios do scaffold — `DiffOps.md` §5). Não criar estruturas customizadas.
 9. **Design**: seguir o Design System TACTICAL OPS (`DiffOps.md` §7) em web e mobile.
