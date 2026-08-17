@@ -30,8 +30,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // drop the unique constraint explicitly before dropping the column
+            // drop the unique and the index explicitly before dropping the
+            // columns — sqlite refuses DROP COLUMN while they still exist
             $table->dropUnique('users_supabase_uid_unique');
+            $table->dropIndex('users_github_username_index');
             $table->dropColumn([
                 'supabase_uid',
                 'github_username',
