@@ -19,7 +19,7 @@ it('creates pull_request_files with the expected columns', function () {
 });
 
 it('defaults counters to zero and flags to false', function () {
-    $prId = seedPullRequest();
+    $prId = seedPullRequestForFiles();
     $fileId = (string) Str::uuid();
 
     DB::table('pull_request_files')->insert([
@@ -41,7 +41,7 @@ it('defaults counters to zero and flags to false', function () {
 });
 
 it('rejects duplicate (pull_request_id, file_path) pairs', function () {
-    $prId = seedPullRequest();
+    $prId = seedPullRequestForFiles();
 
     foreach ([1, 2] as $i) {
         DB::table('pull_request_files')->insert([
@@ -55,7 +55,7 @@ it('rejects duplicate (pull_request_id, file_path) pairs', function () {
 })->throws(QueryException::class);
 
 it('cascades files when the pull request is deleted', function () {
-    $prId = seedPullRequest();
+    $prId = seedPullRequestForFiles();
 
     DB::table('pull_request_files')->insert([
         'id' => (string) Str::uuid(),
@@ -71,7 +71,7 @@ it('cascades files when the pull request is deleted', function () {
 });
 
 it('round-trips the raw_patch text column', function () {
-    $prId = seedPullRequest();
+    $prId = seedPullRequestForFiles();
     $patch = "diff --git a/config/app.php b/config/app.php\n@@ -1,3 +1,4 @@\n+secret";
 
     DB::table('pull_request_files')->insert([
@@ -88,7 +88,7 @@ it('round-trips the raw_patch text column', function () {
     expect($file->raw_patch)->toBe($patch);
 });
 
-function seedPullRequest(): string
+function seedPullRequestForFiles(): string
 {
     $orgId = (string) Str::uuid();
     $now = now();
