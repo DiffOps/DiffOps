@@ -9,6 +9,7 @@ defined('RLS_MIGRATIONS') || define('RLS_MIGRATIONS', [
     '2026_08_17_000108_enable_rls_on_core_tables.php',
     '2026_08_17_000109_add_append_only_and_membership_triggers.php',
     '2026_08_17_000110_enable_realtime_publication_for_incursions.php',
+    '2026_08_17_000206_enable_rls_on_feature_tables.php',
 ]);
 
 const RLS_ENABLED_TABLES = [
