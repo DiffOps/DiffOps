@@ -5,6 +5,8 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -22,6 +24,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'supabase_uid',
+        'github_username',
+        'avatar_url',
+        'is_commander',
+        'preferences',
+        'last_login_at',
     ];
 
     /**
@@ -44,6 +52,29 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_commander' => 'boolean',
+            'preferences' => 'array',
+            'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Organization memberships of this user.
+     *
+     * @return HasMany<OrganizationMember, $this>
+     */
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(OrganizationMember::class);
+    }
+
+    /**
+     * Organizations this user belongs to (through the members pivot).
+     *
+     * @return BelongsToMany<Organization, $this>
+     */
+    public function organizations(): BelongsToMany
+    {
+        return $this->belongsToMany(Organization::class, 'organization_members');
     }
 }
