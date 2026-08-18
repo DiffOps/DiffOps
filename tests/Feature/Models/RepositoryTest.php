@@ -2,6 +2,8 @@
 
 use App\Models\Organization;
 use App\Models\Repository;
+use App\Models\RepoWatchlist;
+use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -64,6 +66,31 @@ it('enforces the unique organization and full_name pair', function () {
 
     createRepositoryRecord(['full_name' => 'acme/backend']);
 })->throws(QueryException::class);
+
+it('relates to watchlist users and entries', function () {
+    $repository = createRepositoryRecord();
+
+    $user = createWatchlistUser();
+
+    RepoWatchlist::create([
+        'user_id' => $user->id,
+        'repository_id' => $repository->id,
+    ]);
+
+    expect($repository->watchlistUsers)->toHaveCount(1)
+        ->and($repository->watchlistUsers->first())->toBeInstanceOf(User::class)
+        ->and($repository->watchlistEntries)->toHaveCount(1)
+        ->and($repository->watchlistEntries->first())->toBeInstanceOf(RepoWatchlist::class);
+});
+
+function createWatchlistUser(): User
+{
+    return User::create([
+        'name' => 'Watcher',
+        'email' => 'watcher@acme.test',
+        'password' => bcrypt('secret'),
+    ]);
+}
 
 function createRepositoryRecord(array $overrides = []): Repository
 {
