@@ -74,6 +74,46 @@ it('drops every policy and disables rls on rollback', function () {
     }
 })->group('rls');
 
+it('keeps every trigger and function name under 63 characters', function () {
+    $path = database_path('migrations/2026_08_17_000109_add_append_only_and_membership_triggers.php');
+    expect(file_exists($path))->toBeTrue();
+
+    $migration = file_get_contents($path);
+
+    $names = [
+        'fn_block_ai_decisions_write',
+        'trg_ai_decisions_append_only',
+        'fn_membership_touch_updated_at',
+        'trg_membership_touch_updated_at',
+    ];
+
+    foreach ($names as $name) {
+        expect(strlen($name))->toBeLessThan(63)
+            ->and($migration)->toContain($name);
+    }
+})->group('rls');
+
+it('blocks ai_decisions writes with an append-only trigger', function () {
+    $path = database_path('migrations/2026_08_17_000109_add_append_only_and_membership_triggers.php');
+    expect(file_exists($path))->toBeTrue();
+
+    $migration = file_get_contents($path);
+
+    expect($migration)->toContain('BEFORE UPDATE OR DELETE')
+        ->and($migration)->toContain('RAISE EXCEPTION')
+        ->and($migration)->toContain("'ai_decisions is append-only'");
+})->group('rls');
+
+it('touches updated_at on organization_members through a trigger', function () {
+    $path = database_path('migrations/2026_08_17_000109_add_append_only_and_membership_triggers.php');
+    expect(file_exists($path))->toBeTrue();
+
+    $migration = file_get_contents($path);
+
+    expect($migration)->toContain('BEFORE UPDATE ON organization_members')
+        ->and($migration)->toContain('NEW.updated_at := now()');
+})->group('rls');
+
 it('guards every rls migration with a pgsql driver check', function () {
     $guarded = ['getDriverName()', "!== 'pgsql'"];
 
