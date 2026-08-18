@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\OrganizationRole;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,6 +29,7 @@ class User extends Authenticatable
         'github_username',
         'avatar_url',
         'is_commander',
+        'is_active',
         'preferences',
         'last_login_at',
     ];
@@ -53,9 +55,34 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_commander' => 'boolean',
+            'is_active' => 'boolean',
             'preferences' => 'array',
             'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Whether this user holds the global commander flag.
+     */
+    public function isCommander(): bool
+    {
+        return (bool) $this->is_commander;
+    }
+
+    /**
+     * Whether this user is a member of the given organization.
+     */
+    public function isMemberOf(Organization $org): bool
+    {
+        return $this->memberships()->where('organization_id', $org->id)->exists();
+    }
+
+    /**
+     * The tactical role of this user inside the organization, if any.
+     */
+    public function roleIn(Organization $org): ?OrganizationRole
+    {
+        return $this->memberships()->where('organization_id', $org->id)->first()?->role;
     }
 
     /**
