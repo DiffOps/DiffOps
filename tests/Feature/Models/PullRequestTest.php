@@ -4,6 +4,7 @@ use App\Enums\PrState;
 use App\Models\Organization;
 use App\Models\PullRequest;
 use App\Models\PullRequestFile;
+use App\Models\RiskAssessment;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -68,6 +69,19 @@ it('belongs to an organization and relates to files', function () {
     expect($pr->organization)->toBeInstanceOf(Organization::class)
         ->and($pr->files)->toHaveCount(1)
         ->and($pr->files->first())->toBeInstanceOf(PullRequestFile::class);
+});
+
+it('relates to risk assessments', function () {
+    $pr = createPullRequestRecord();
+
+    RiskAssessment::create([
+        'pull_request_id' => $pr->id,
+        'head_sha' => str_repeat('a', 64),
+        'verdict' => 'clear',
+    ]);
+
+    expect($pr->riskAssessments)->toHaveCount(1)
+        ->and($pr->riskAssessments->first())->toBeInstanceOf(RiskAssessment::class);
 });
 
 it('enforces the unique organization, repo and pr number triplet', function () {
