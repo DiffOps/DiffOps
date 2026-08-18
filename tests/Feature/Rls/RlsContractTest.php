@@ -114,6 +114,28 @@ it('touches updated_at on organization_members through a trigger', function () {
         ->and($migration)->toContain('NEW.updated_at := now()');
 })->group('rls');
 
+it('adds incursion tables to the supabase realtime publication', function () {
+    $path = database_path('migrations/2026_08_17_000110_enable_realtime_publication_for_incursions.php');
+    expect(file_exists($path))->toBeTrue();
+
+    $migration = file_get_contents($path);
+
+    expect($migration)->toContain('supabase_realtime')
+        ->and($migration)->toContain('pull_requests')
+        ->and($migration)->toContain('risk_assessments')
+        ->and($migration)->toContain('pg_publication');
+})->group('rls');
+
+it('removes the tables from the realtime publication on rollback', function () {
+    $path = database_path('migrations/2026_08_17_000110_enable_realtime_publication_for_incursions.php');
+    expect(file_exists($path))->toBeTrue();
+
+    $migration = file_get_contents($path);
+
+    expect($migration)->toContain('ALTER PUBLICATION supabase_realtime DROP TABLE pull_requests')
+        ->and($migration)->toContain('ALTER PUBLICATION supabase_realtime DROP TABLE risk_assessments');
+})->group('rls');
+
 it('guards every rls migration with a pgsql driver check', function () {
     $guarded = ['getDriverName()', "!== 'pgsql'"];
 
