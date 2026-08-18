@@ -15,14 +15,23 @@ const CORE_TABLES = [
     'ai_decisions',
 ];
 
+const FEATURE_TABLES = [
+    'repositories',
+    'report_comments',
+    'audit_logs',
+    'contributor_risks',
+    'repo_watchlist',
+];
+
 const RLS_MIGRATIONS = [
     '2026_08_17_000108_enable_rls_on_core_tables.php',
     '2026_08_17_000109_add_append_only_and_membership_triggers.php',
     '2026_08_17_000110_enable_realtime_publication_for_incursions.php',
+    '2026_08_17_000206_enable_rls_on_feature_tables.php',
 ];
 
-it('uses snake_case for every column across the core tables', function () {
-    foreach (CORE_TABLES as $table) {
+it('uses snake_case for every column across the core and feature tables', function () {
+    foreach (array_merge(CORE_TABLES, FEATURE_TABLES) as $table) {
         $columns = array_column(Schema::getColumns($table), 'name');
 
         foreach ($columns as $column) {
@@ -96,12 +105,12 @@ it('reserves the supabase migrations directory with a README', function () {
     expect(file_exists(base_path('supabase/migrations/README.md')))->toBeTrue();
 });
 
-it('rolls back all core migrations while keeping scaffold tables intact', function () {
+it('rolls back all core and feature migrations while keeping scaffold tables intact', function () {
     $coreMigrations = glob(database_path('migrations/2026_08_17_*.php'));
 
     Artisan::call('migrate:rollback', ['--step' => count($coreMigrations)]);
 
-    foreach (CORE_TABLES as $table) {
+    foreach (array_merge(CORE_TABLES, FEATURE_TABLES) as $table) {
         expect(Schema::hasTable($table))->toBeFalse();
     }
 
