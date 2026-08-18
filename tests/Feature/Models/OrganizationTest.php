@@ -2,6 +2,7 @@
 
 use App\Models\Organization;
 use App\Models\OrganizationMember;
+use App\Models\PullRequest;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,4 +54,20 @@ it('relates to members', function () {
 
     expect($organization->members)->toHaveCount(1)
         ->and($organization->members->first())->toBeInstanceOf(OrganizationMember::class);
+});
+
+it('relates to pull requests', function () {
+    $organization = Organization::create(['name' => 'Acme', 'slug' => 'acme']);
+
+    PullRequest::create([
+        'organization_id' => $organization->id,
+        'github_repo_id' => 1,
+        'repo_full_name' => 'acme/web',
+        'github_pr_number' => 10,
+        'title' => 'Fix login',
+        'author_username' => 'dev',
+    ]);
+
+    expect($organization->pullRequests)->toHaveCount(1)
+        ->and($organization->pullRequests->first())->toBeInstanceOf(PullRequest::class);
 });
