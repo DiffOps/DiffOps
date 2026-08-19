@@ -3,19 +3,23 @@
 namespace App\Auth;
 
 use App\Models\User;
+use App\Services\ProfileSyncService;
 use App\Services\SupabaseJwtService;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Http\Request;
+use Throwable;
 use UnexpectedValueException;
 
 /**
- * Stateless guard that authenticates a Supabase access token (HS256).
+ * Stateless guard that authenticates a Supabase access token (HS256 or
+ * RS256).
  *
  * The Bearer token is decoded by the SupabaseJwtService; the subject is then
- * matched against the local users table. Inactive or unknown users are never
- * authenticated, and any decoding failure degrades to a guest.
+ * matched against the local users table, lazily creating the profile on the
+ * first login. Inactive users are never authenticated, and any decoding
+ * failure degrades to a guest.
  */
 class SupabaseJwtGuard implements Guard
 {
@@ -51,7 +55,25 @@ class SupabaseJwtGuard implements Guard
 
         $user = $this->provider?->retrieveByCredentials(['supabase_uid' => $claims['sub']]);
 
-        if (! $user instanceof User || $user->is_active === false) {
+        if ($user instanceof User) {
+            if ($user->is_active === false) {
+                return null;
+            }
+
+            try {
+                app(ProfileSyncService::class)->refreshIfChanged($user, $claims);
+            } catch (Throwable $e) {
+                report($e);
+            }
+
+            return $this->user = $user;
+        }
+
+        // First login for this subject: create the local profile. Failures
+        // propagate (fail-closed) instead of silently degrading auth.
+        $user = app(ProfileSyncService::class)->createFromClaims($claims);
+
+        if ($user->is_active === false) {
             return null;
         }
 
