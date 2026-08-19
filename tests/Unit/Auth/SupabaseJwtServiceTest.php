@@ -4,7 +4,6 @@ use App\Services\SupabaseJwtService;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\SignatureInvalidException;
 use Tests\Support\TestJwtSigner;
-use UnexpectedValueException;
 
 beforeEach(function () {
     config()->set('services.supabase', [
