@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ValidateGitHubSignature;
 use App\Http\Middleware\VerifySupabaseJwt;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'verify.supabase.jwt' => VerifySupabaseJwt::class,
+            'validate.github.signature' => ValidateGitHubSignature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
