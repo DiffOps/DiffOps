@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\PrState;
 use App\Models\PullRequest;
+use App\Models\PullRequestFile;
 use App\Models\Repository;
 use App\Services\GitHub\DiffFetcher;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -80,8 +81,8 @@ class ProcessIncursionJob implements ShouldQueue
                 (int) $installationId,
             );
 
-            DB::transaction(function () use ($repository, $normalized): void {
-                PullRequest::updateOrCreate(
+            DB::transaction(function () use ($repository, $normalized, $files): void {
+                $pr = PullRequest::updateOrCreate(
                     [
                         'organization_id' => $repository->organization_id,
                         'repo_full_name' => $normalized['repo_full_name'],
@@ -89,6 +90,8 @@ class ProcessIncursionJob implements ShouldQueue
                     ],
                     $normalized,
                 );
+
+                $this->syncFiles($pr, $files);
             });
         }
     }
@@ -120,5 +123,39 @@ class ProcessIncursionJob implements ShouldQueue
             'is_draft' => (bool) ($pull['draft'] ?? false),
             'closed_at' => $pull['closed_at'] ?? null,
         ];
+    }
+
+    /**
+     * Upsert the current diff files and drop paths that left the diff.
+     *
+     * @param  array<int, array<string, mixed>>  $files
+     */
+    private function syncFiles(PullRequest $pr, array $files): void
+    {
+        $incomingPaths = [];
+
+        foreach ($files as $file) {
+            $path = (string) $file['filename'];
+            $incomingPaths[] = $path;
+            $patch = $file['patch'] ?? null;
+
+            PullRequestFile::updateOrCreate(
+                ['pull_request_id' => $pr->id, 'file_path' => $path],
+                [
+                    'status' => $file['status'] ?? null,
+                    'additions' => (int) ($file['additions'] ?? 0),
+                    'deletions' => (int) ($file['deletions'] ?? 0),
+                    'raw_patch' => $patch,
+                    'bytes' => strlen((string) $patch),
+                    'is_binary' => $patch === null,
+                ],
+            );
+        }
+
+        if ($incomingPaths !== []) {
+            PullRequestFile::where('pull_request_id', $pr->id)
+                ->whereNotIn('file_path', $incomingPaths)
+                ->delete();
+        }
     }
 }

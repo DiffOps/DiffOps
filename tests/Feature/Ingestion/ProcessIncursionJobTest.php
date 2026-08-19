@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\PrFileStatus;
 use App\Enums\PrState;
 use App\Jobs\ProcessIncursionJob;
 use App\Models\Organization;
@@ -12,6 +13,7 @@ use App\Services\GitHub\DiffFetcher;
 use App\Services\GitHub\GitHubApiClient;
 use App\Services\GitHub\GitHubAppTokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Tests\Support\GitHubWebhookFixtures;
@@ -184,4 +186,109 @@ it('processes the pull request for every registered organization', function (): 
     (new ProcessIncursionJob(GitHubWebhookFixtures::pullRequestOpened(), 'delivery-8'))->handle();
 
     expect(PullRequest::count())->toBe(2);
+});
+
+function prJobDiffFile(string $path, string $status = 'modified', array $overrides = []): array
+{
+    return array_merge([
+        'filename' => $path,
+        'status' => $status,
+        'additions' => 3,
+        'deletions' => 1,
+        'patch' => "@@ -1,3 +1,4 @@\n+new",
+    ], $overrides);
+}
+
+it('persists the normalized files of the pull request', function (): void {
+    prJobSeedOrgAndRepo();
+
+    Http::fake(['*/repos/acme/web/pulls/42/files*' => Http::response([
+        prJobDiffFile('app/A.php', 'added', ['additions' => 5, 'deletions' => 0]),
+        prJobDiffFile('app/B.php', 'modified', ['additions' => 2, 'deletions' => 1]),
+    ], 200)]);
+
+    (new ProcessIncursionJob(GitHubWebhookFixtures::pullRequestOpened(), 'delivery-9'))->handle();
+
+    $fileA = PullRequestFile::where('file_path', 'app/A.php')->first();
+    $fileB = PullRequestFile::where('file_path', 'app/B.php')->first();
+
+    expect($fileA->status)->toBe(PrFileStatus::Added)
+        ->and($fileA->additions)->toBe(5)
+        ->and($fileA->deletions)->toBe(0)
+        ->and($fileB->status)->toBe(PrFileStatus::Modified)
+        ->and($fileB->additions)->toBe(2)
+        ->and($fileB->deletions)->toBe(1);
+});
+
+it('flags files without a patch as binary', function (): void {
+    prJobSeedOrgAndRepo();
+
+    Http::fake(['*/repos/acme/web/pulls/42/files*' => Http::response([
+        prJobDiffFile('assets/logo.png', 'added', ['patch' => null]),
+    ], 200)]);
+
+    (new ProcessIncursionJob(GitHubWebhookFixtures::pullRequestOpened(), 'delivery-10'))->handle();
+
+    $file = PullRequestFile::where('file_path', 'assets/logo.png')->first();
+
+    expect($file->is_binary)->toBeTrue()
+        ->and($file->raw_patch)->toBeNull()
+        ->and($file->bytes)->toBe(0);
+});
+
+it('stores the patch bytes as the raw patch length', function (): void {
+    prJobSeedOrgAndRepo();
+
+    $patch = "@@ -1,3 +1,4 @@\n+secret line";
+
+    Http::fake(['*/repos/acme/web/pulls/42/files*' => Http::response([
+        prJobDiffFile('config/app.php', 'modified', ['patch' => $patch]),
+    ], 200)]);
+
+    (new ProcessIncursionJob(GitHubWebhookFixtures::pullRequestOpened(), 'delivery-11'))->handle();
+
+    $file = PullRequestFile::where('file_path', 'config/app.php')->first();
+
+    expect($file->raw_patch)->toBe($patch)
+        ->and($file->bytes)->toBe(strlen($patch))
+        ->and($file->is_binary)->toBeFalse();
+});
+
+it('persists files fetched across two pages', function (): void {
+    prJobSeedOrgAndRepo();
+
+    Http::fake([
+        '*/repos/acme/web/pulls/42/files*' => Http::sequence()
+            ->push([prJobDiffFile('app/A.php')], 200, ['Link' => '<https://api.github.com/repos/acme/web/pulls/42/files?page=2>; rel="next"'])
+            ->push([prJobDiffFile('app/B.php'), prJobDiffFile('app/C.php')], 200),
+    ]);
+
+    (new ProcessIncursionJob(GitHubWebhookFixtures::pullRequestOpened(), 'delivery-12'))->handle();
+
+    expect(PullRequestFile::count())->toBe(3);
+});
+
+it('removes files that are no longer part of the diff on synchronize', function (): void {
+    prJobSeedPullRequest(['state' => 'open', 'head_sha' => str_repeat('a', 40)]);
+    PullRequestFile::create(['pull_request_id' => PullRequest::first()->id, 'file_path' => 'app/old.php', 'status' => 'added']);
+
+    Http::fake(['*/repos/acme/web/pulls/42/files*' => Http::response([
+        prJobDiffFile('app/new.php', 'added'),
+    ], 200)]);
+
+    (new ProcessIncursionJob(GitHubWebhookFixtures::pullRequestSynchronize(), 'delivery-13'))->handle();
+
+    expect(PullRequestFile::where('file_path', 'app/old.php')->exists())->toBeFalse()
+        ->and(PullRequestFile::where('file_path', 'app/new.php')->exists())->toBeTrue();
+});
+
+it('persists nothing when the file fetch fails', function (): void {
+    prJobSeedOrgAndRepo();
+
+    Http::fake(['*/repos/acme/web/pulls/42/files*' => Http::response('boom', 500)]);
+
+    expect(fn () => (new ProcessIncursionJob(GitHubWebhookFixtures::pullRequestOpened(), 'delivery-14'))->handle())
+        ->toThrow(RequestException::class);
+
+    expect(PullRequest::count())->toBe(0);
 });
