@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\Support\TestJwtSigner;
 use Tests\Support\TestUserProfileFixture;
-use UnexpectedValueException;
 
 beforeEach(function (): void {
     config()->set('services.supabase', [
