@@ -139,6 +139,13 @@ it('throws when the profile endpoint answers with an error status', function ():
         ->toThrow(UnexpectedValueException::class);
 });
 
+it('throws when the profile endpoint rejects the access token', function (): void {
+    Http::fake([profileHttpUrl() => Http::response('expired token', 401)]);
+
+    expect(fn () => profileHttpFetcher()->fetch('token', TestJwtSigner::SUB))
+        ->toThrow(UnexpectedValueException::class);
+});
+
 it('throws when the payload is not an array', function (): void {
     Http::fake([profileHttpUrl() => Http::response('not-json', 200)]);
 
