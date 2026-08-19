@@ -5,6 +5,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Tests\Support\TestJwtSigner;
 
 uses(RefreshDatabase::class);
@@ -15,7 +16,13 @@ beforeEach(function () {
         'jwt_secret' => TestJwtSigner::SECRET,
         'jwt_audience' => TestJwtSigner::AUDIENCE,
         'jwt_clock_skew' => 30,
+        'jwks_url' => TestJwtSigner::ISSUER_BASE.'/auth/v1/.well-known/jwks.json',
+        'jwks_cache_ttl' => 3600,
+        'jwks_timeout' => 5,
+        'last_login_debounce' => 300,
     ]);
+
+    Cache::flush();
 });
 
 function supabaseGuardRequest(string $authorization): Request
@@ -41,10 +48,14 @@ it('resolves the user from a valid bearer token', function () {
         ->and($guard->user())->toBe($guard->user());
 });
 
-it('returns null when the token subject has no user', function () {
+it('creates the local profile when the token subject has no user', function () {
     $this->app->instance('request', supabaseGuardRequest('Bearer '.TestJwtSigner::sign()));
 
-    expect(Auth::guard('supabase')->user())->toBeNull();
+    $user = Auth::guard('supabase')->user();
+
+    expect($user)->toBeInstanceOf(User::class)
+        ->and($user->supabase_uid)->toBe(TestJwtSigner::SUB)
+        ->and(User::where('supabase_uid', TestJwtSigner::SUB)->exists())->toBeTrue();
 });
 
 it('returns null for an inactive user', function () {
@@ -128,4 +139,24 @@ it('sets a user directly', function () {
         ->and($guard->check())->toBeTrue()
         ->and($guard->hasUser())->toBeTrue()
         ->and($guard->id())->toBe($user->id);
+});
+
+it('creates the local profile on first login', function () {
+    $this->app->instance('request', supabaseGuardRequest('Bearer '.TestJwtSigner::sign([
+        'email' => 'operator@diffops.test',
+        'user_metadata' => [
+            'full_name' => 'Operator One',
+            'user_name' => 'op-one',
+            'avatar_url' => 'https://avatars.example.com/op-one.png',
+        ],
+    ])));
+
+    $user = Auth::guard('supabase')->user();
+
+    expect($user)->toBeInstanceOf(User::class)
+        ->and($user->supabase_uid)->toBe(TestJwtSigner::SUB)
+        ->and($user->name)->toBe('Operator One')
+        ->and($user->email)->toBe('operator@diffops.test')
+        ->and($user->github_username)->toBe('op-one')
+        ->and(User::where('supabase_uid', TestJwtSigner::SUB)->exists())->toBeTrue();
 });

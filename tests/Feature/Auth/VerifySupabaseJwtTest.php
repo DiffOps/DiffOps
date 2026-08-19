@@ -67,9 +67,12 @@ it('rejects a token without a subject', function () {
         ->assertStatus(401);
 });
 
-it('rejects a valid token without a matching user', function () {
+it('accepts a valid token and creates the local profile on first login', function () {
     $this->getJson('/_auth/probe', ['Authorization' => 'Bearer '.TestJwtSigner::sign()])
-        ->assertStatus(401);
+        ->assertOk()
+        ->assertJson(['supabase_uid' => TestJwtSigner::SUB]);
+
+    expect(User::where('supabase_uid', TestJwtSigner::SUB)->exists())->toBeTrue();
 });
 
 it('rejects a token for an inactive user', function () {

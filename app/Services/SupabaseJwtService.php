@@ -123,7 +123,8 @@ class SupabaseJwtService
             throw new UnexpectedValueException('Supabase JWT has no subject.');
         }
 
-        return (array) $payload;
+        // Normalize nested objects (user_metadata, app_metadata) to arrays.
+        return json_decode(json_encode($payload), true);
     }
 
     private function jwks(): SupabaseJwksService
