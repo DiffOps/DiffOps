@@ -55,6 +55,72 @@ it('derives the jwt issuer from the supabase url', function (): void {
     }
 });
 
+it('keeps the jwks url out of the config without a supabase url', function (): void {
+    $saved = jwksConfigSaveSupabaseEnv();
+
+    try {
+        jwksConfigUnsetSupabaseEnv();
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['jwks_url'])->toBeNull();
+    } finally {
+        jwksConfigRestoreSupabaseEnv($saved);
+    }
+});
+
+it('derives the jwks url from the supabase url with or without a trailing slash', function (string $url, string $expected): void {
+    $saved = jwksConfigSaveSupabaseEnv();
+
+    try {
+        jwksConfigUnsetSupabaseEnv();
+
+        $_ENV['SUPABASE_URL'] = $url;
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['jwks_url'])->toBe($expected);
+    } finally {
+        jwksConfigRestoreSupabaseEnv($saved);
+    }
+})->with([
+    'with trailing slash' => ['https://qkrsrfrlwclzloqjisdr.supabase.co/', 'https://qkrsrfrlwclzloqjisdr.supabase.co/auth/v1/.well-known/jwks.json'],
+    'without trailing slash' => ['https://qkrsrfrlwclzloqjisdr.supabase.co', 'https://qkrsrfrlwclzloqjisdr.supabase.co/auth/v1/.well-known/jwks.json'],
+]);
+
+it('defaults the jwks cache ttl, timeout and last login debounce', function (): void {
+    $saved = jwksConfigSaveSupabaseEnv();
+
+    try {
+        jwksConfigUnsetSupabaseEnv();
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['jwks_cache_ttl'])->toBe(3600)
+            ->and($config['supabase']['jwks_timeout'])->toBe(5)
+            ->and($config['supabase']['last_login_debounce'])->toBe(300);
+    } finally {
+        jwksConfigRestoreSupabaseEnv($saved);
+    }
+});
+
+it('overrides the jwks url via env', function (): void {
+    $saved = jwksConfigSaveSupabaseEnv();
+
+    try {
+        jwksConfigUnsetSupabaseEnv();
+
+        $_ENV['SUPABASE_JWKS_URL'] = 'https://custom.example.com/jwks.json';
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['jwks_url'])
+            ->toBe('https://custom.example.com/jwks.json');
+    } finally {
+        jwksConfigRestoreSupabaseEnv($saved);
+    }
+});
+
 function authConfigSaveSupabaseEnv(): array
 {
     return [
@@ -84,6 +150,54 @@ function authConfigUnsetSupabaseEnv(): void
 }
 
 function authConfigRestoreSupabaseEnv(array $saved): void
+{
+    foreach ($saved as $name => $state) {
+        unset($_ENV[$name], $_SERVER[$name]);
+        putenv($name);
+
+        if ($state['env'] !== null) {
+            $_ENV[$name] = $state['env'];
+        }
+
+        if ($state['server'] !== null) {
+            $_SERVER[$name] = $state['server'];
+        }
+
+        if ($state['system'] !== false) {
+            putenv("{$name}={$state['system']}");
+        }
+    }
+}
+
+function jwksConfigSaveSupabaseEnv(): array
+{
+    return [
+        'url' => jwksConfigReadSupabaseEnv('SUPABASE_URL'),
+        'jwks_url' => jwksConfigReadSupabaseEnv('SUPABASE_JWKS_URL'),
+        'ttl' => jwksConfigReadSupabaseEnv('SUPABASE_JWKS_CACHE_TTL'),
+        'timeout' => jwksConfigReadSupabaseEnv('SUPABASE_JWKS_TIMEOUT'),
+        'debounce' => jwksConfigReadSupabaseEnv('SUPABASE_LAST_LOGIN_DEBOUNCE'),
+    ];
+}
+
+function jwksConfigReadSupabaseEnv(string $name): array
+{
+    return [
+        'env' => $_ENV[$name] ?? null,
+        'server' => $_SERVER[$name] ?? null,
+        'system' => getenv($name) ?: false,
+    ];
+}
+
+function jwksConfigUnsetSupabaseEnv(): void
+{
+    foreach (['SUPABASE_URL', 'SUPABASE_JWKS_URL', 'SUPABASE_JWKS_CACHE_TTL', 'SUPABASE_JWKS_TIMEOUT', 'SUPABASE_LAST_LOGIN_DEBOUNCE'] as $name) {
+        unset($_ENV[$name], $_SERVER[$name]);
+        putenv($name);
+    }
+}
+
+function jwksConfigRestoreSupabaseEnv(array $saved): void
 {
     foreach ($saved as $name => $state) {
         unset($_ENV[$name], $_SERVER[$name]);
