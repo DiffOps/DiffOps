@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use Tests\Support\TestJwtSigner;
 
@@ -92,4 +93,17 @@ it('answers 401 with the unauthenticated json contract', function () {
     $this->getJson('/_auth/probe')
         ->assertStatus(401)
         ->assertExactJson(['message' => 'Unauthenticated.']);
+});
+
+it('accepts a valid token even when the profile fetch fails', function () {
+    config()->set('services.supabase.profile_sync_http', true);
+    config()->set('services.supabase.profile_sync_url', TestJwtSigner::ISSUER_BASE.'/auth/v1/user');
+    config()->set('services.supabase.profile_sync_timeout', 5);
+    config()->set('services.supabase.profile_sync_cache_ttl', 300);
+
+    Http::fake(['*/auth/v1/user' => Http::response('boom', 500)]);
+
+    $this->getJson('/_auth/probe', ['Authorization' => 'Bearer '.TestJwtSigner::sign()])
+        ->assertOk()
+        ->assertJson(['supabase_uid' => TestJwtSigner::SUB]);
 });
