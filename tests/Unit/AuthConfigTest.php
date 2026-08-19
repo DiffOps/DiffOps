@@ -121,6 +121,91 @@ it('overrides the jwks url via env', function (): void {
     }
 });
 
+it('defaults the profile sync http flag, timeout and cache ttl', function (): void {
+    $saved = profileSyncConfigSaveSupabaseEnv();
+
+    try {
+        profileSyncConfigUnsetSupabaseEnv();
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['profile_sync_http'])->toBeFalse()
+            ->and($config['supabase']['profile_sync_timeout'])->toBe(5)
+            ->and($config['supabase']['profile_sync_cache_ttl'])->toBe(300);
+    } finally {
+        profileSyncConfigRestoreSupabaseEnv($saved);
+    }
+});
+
+it('parses the profile sync http env flag as a boolean', function (string $raw, bool $expected): void {
+    $saved = profileSyncConfigSaveSupabaseEnv();
+
+    try {
+        profileSyncConfigUnsetSupabaseEnv();
+
+        $_ENV['SUPABASE_PROFILE_SYNC_HTTP'] = $raw;
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['profile_sync_http'])->toBe($expected);
+    } finally {
+        profileSyncConfigRestoreSupabaseEnv($saved);
+    }
+})->with([
+    'true' => ['true', true],
+    'false' => ['false', false],
+]);
+
+it('keeps the profile sync url out of the config without a supabase url', function (): void {
+    $saved = profileSyncConfigSaveSupabaseEnv();
+
+    try {
+        profileSyncConfigUnsetSupabaseEnv();
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['profile_sync_url'])->toBeNull();
+    } finally {
+        profileSyncConfigRestoreSupabaseEnv($saved);
+    }
+});
+
+it('derives the profile sync url from the supabase url with or without a trailing slash', function (string $url, string $expected): void {
+    $saved = profileSyncConfigSaveSupabaseEnv();
+
+    try {
+        profileSyncConfigUnsetSupabaseEnv();
+
+        $_ENV['SUPABASE_URL'] = $url;
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['profile_sync_url'])->toBe($expected);
+    } finally {
+        profileSyncConfigRestoreSupabaseEnv($saved);
+    }
+})->with([
+    'with trailing slash' => ['https://qkrsrfrlwclzloqjisdr.supabase.co/', 'https://qkrsrfrlwclzloqjisdr.supabase.co/auth/v1/user'],
+    'without trailing slash' => ['https://qkrsrfrlwclzloqjisdr.supabase.co', 'https://qkrsrfrlwclzloqjisdr.supabase.co/auth/v1/user'],
+]);
+
+it('overrides the profile sync url via env', function (): void {
+    $saved = profileSyncConfigSaveSupabaseEnv();
+
+    try {
+        profileSyncConfigUnsetSupabaseEnv();
+
+        $_ENV['SUPABASE_PROFILE_SYNC_URL'] = 'https://custom.example.com/user';
+
+        $config = require base_path('config/services.php');
+
+        expect($config['supabase']['profile_sync_url'])
+            ->toBe('https://custom.example.com/user');
+    } finally {
+        profileSyncConfigRestoreSupabaseEnv($saved);
+    }
+});
+
 function authConfigSaveSupabaseEnv(): array
 {
     return [
@@ -198,6 +283,54 @@ function jwksConfigUnsetSupabaseEnv(): void
 }
 
 function jwksConfigRestoreSupabaseEnv(array $saved): void
+{
+    foreach ($saved as $name => $state) {
+        unset($_ENV[$name], $_SERVER[$name]);
+        putenv($name);
+
+        if ($state['env'] !== null) {
+            $_ENV[$name] = $state['env'];
+        }
+
+        if ($state['server'] !== null) {
+            $_SERVER[$name] = $state['server'];
+        }
+
+        if ($state['system'] !== false) {
+            putenv("{$name}={$state['system']}");
+        }
+    }
+}
+
+function profileSyncConfigSaveSupabaseEnv(): array
+{
+    return [
+        'url' => profileSyncConfigReadSupabaseEnv('SUPABASE_URL'),
+        'sync_url' => profileSyncConfigReadSupabaseEnv('SUPABASE_PROFILE_SYNC_URL'),
+        'http' => profileSyncConfigReadSupabaseEnv('SUPABASE_PROFILE_SYNC_HTTP'),
+        'timeout' => profileSyncConfigReadSupabaseEnv('SUPABASE_PROFILE_SYNC_TIMEOUT'),
+        'ttl' => profileSyncConfigReadSupabaseEnv('SUPABASE_PROFILE_SYNC_CACHE_TTL'),
+    ];
+}
+
+function profileSyncConfigReadSupabaseEnv(string $name): array
+{
+    return [
+        'env' => $_ENV[$name] ?? null,
+        'server' => $_SERVER[$name] ?? null,
+        'system' => getenv($name) ?: false,
+    ];
+}
+
+function profileSyncConfigUnsetSupabaseEnv(): void
+{
+    foreach (['SUPABASE_URL', 'SUPABASE_PROFILE_SYNC_URL', 'SUPABASE_PROFILE_SYNC_HTTP', 'SUPABASE_PROFILE_SYNC_TIMEOUT', 'SUPABASE_PROFILE_SYNC_CACHE_TTL'] as $name) {
+        unset($_ENV[$name], $_SERVER[$name]);
+        putenv($name);
+    }
+}
+
+function profileSyncConfigRestoreSupabaseEnv(array $saved): void
 {
     foreach ($saved as $name => $state) {
         unset($_ENV[$name], $_SERVER[$name]);

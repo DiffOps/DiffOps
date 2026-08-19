@@ -45,6 +45,10 @@ return [
         'jwks_cache_ttl' => env('SUPABASE_JWKS_CACHE_TTL', 3600),
         'jwks_timeout' => env('SUPABASE_JWKS_TIMEOUT', 5),
         'last_login_debounce' => env('SUPABASE_LAST_LOGIN_DEBOUNCE', 300),
+        'profile_sync_http' => filter_var(env('SUPABASE_PROFILE_SYNC_HTTP', false), FILTER_VALIDATE_BOOLEAN),
+        'profile_sync_url' => env('SUPABASE_PROFILE_SYNC_URL', env('SUPABASE_URL') ? rtrim((string) env('SUPABASE_URL'), '/').'/auth/v1/user' : null),
+        'profile_sync_timeout' => env('SUPABASE_PROFILE_SYNC_TIMEOUT', 5),
+        'profile_sync_cache_ttl' => env('SUPABASE_PROFILE_SYNC_CACHE_TTL', 300),
     ],
 
 ];
