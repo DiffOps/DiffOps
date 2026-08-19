@@ -61,7 +61,7 @@ class SupabaseJwtGuard implements Guard
             }
 
             try {
-                app(ProfileSyncService::class)->refreshIfChanged($user, $claims);
+                app(ProfileSyncService::class)->refreshIfChanged($user, $claims, $token);
             } catch (Throwable $e) {
                 report($e);
             }
@@ -71,7 +71,7 @@ class SupabaseJwtGuard implements Guard
 
         // First login for this subject: create the local profile. Failures
         // propagate (fail-closed) instead of silently degrading auth.
-        $user = app(ProfileSyncService::class)->createFromClaims($claims);
+        $user = app(ProfileSyncService::class)->createFromClaims($claims, $token);
 
         if ($user->is_active === false) {
             return null;

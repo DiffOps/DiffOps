@@ -3,10 +3,13 @@
 use App\Auth\SupabaseJwtGuard;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Tests\Support\TestJwtSigner;
+use Tests\Support\TestUserProfileFixture;
 
 uses(RefreshDatabase::class);
 
@@ -159,4 +162,46 @@ it('creates the local profile on first login', function () {
         ->and($user->email)->toBe('operator@diffops.test')
         ->and($user->github_username)->toBe('op-one')
         ->and(User::where('supabase_uid', TestJwtSigner::SUB)->exists())->toBeTrue();
+});
+
+it('forwards the bearer token to the profile sync on first login', function () {
+    config()->set('services.supabase.profile_sync_http', true);
+    config()->set('services.supabase.profile_sync_url', TestJwtSigner::ISSUER_BASE.'/auth/v1/user');
+    config()->set('services.supabase.profile_sync_timeout', 5);
+    config()->set('services.supabase.profile_sync_cache_ttl', 300);
+
+    $token = TestJwtSigner::sign(['email' => null]);
+
+    Http::fake(['*/auth/v1/user' => Http::response(TestUserProfileFixture::payload())]);
+
+    $this->app->instance('request', supabaseGuardRequest('Bearer '.$token));
+
+    $user = Auth::guard('supabase')->user();
+
+    expect($user)->toBeInstanceOf(User::class)
+        ->and($user->email)->toBe(TestUserProfileFixture::EMAIL);
+
+    Http::assertSent(fn (ClientRequest $request): bool => $request->hasHeader('Authorization', 'Bearer '.$token));
+});
+
+it('keeps authenticating when the profile fetch fails on first login', function () {
+    config()->set('services.supabase.profile_sync_http', true);
+    config()->set('services.supabase.profile_sync_url', TestJwtSigner::ISSUER_BASE.'/auth/v1/user');
+    config()->set('services.supabase.profile_sync_timeout', 5);
+    config()->set('services.supabase.profile_sync_cache_ttl', 300);
+
+    $token = TestJwtSigner::sign([
+        'email' => 'operator@diffops.test',
+        'user_metadata' => ['full_name' => 'Operator One'],
+    ]);
+
+    Http::fake(['*/auth/v1/user' => Http::response('boom', 500)]);
+
+    $this->app->instance('request', supabaseGuardRequest('Bearer '.$token));
+
+    $user = Auth::guard('supabase')->user();
+
+    expect($user)->toBeInstanceOf(User::class)
+        ->and($user->supabase_uid)->toBe(TestJwtSigner::SUB)
+        ->and($user->email)->toBe('operator@diffops.test');
 });
