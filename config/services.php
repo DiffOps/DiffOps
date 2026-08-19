@@ -51,4 +51,14 @@ return [
         'profile_sync_cache_ttl' => env('SUPABASE_PROFILE_SYNC_CACHE_TTL', 300),
     ],
 
+    'github' => [
+        'api_url' => env('GITHUB_API_URL', 'https://api.github.com'),
+        'app_id' => env('GITHUB_APP_ID'),
+        'app_private_key' => env('GITHUB_APP_PRIVATE_KEY'),
+        'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
+        'timeout' => (int) env('GITHUB_TIMEOUT', 15),
+        'token_cache_ttl' => (int) env('GITHUB_TOKEN_CACHE_TTL', 3300),
+        'retries' => (int) env('GITHUB_RETRIES', 2),
+    ],
+
 ];
