@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'supabase' => [
+        'url' => env('SUPABASE_URL'),
+        'jwt_secret' => env('SUPABASE_JWT_SECRET'),
+        'jwt_audience' => env('SUPABASE_JWT_AUDIENCE', 'authenticated'),
+        'jwt_clock_skew' => env('SUPABASE_JWT_CLOCK_SKEW', 30),
+        'jwt_issuer' => env('SUPABASE_JWT_ISSUER', rtrim((string) env('SUPABASE_URL'), '/').'/auth/v1'),
+    ],
+
 ];

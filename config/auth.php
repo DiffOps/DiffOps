@@ -42,6 +42,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'supabase' => [
+            'driver' => 'supabase-jwt',
+            'provider' => 'users',
+        ],
     ],
 
     /*
