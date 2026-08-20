@@ -181,11 +181,12 @@ it('parses comma-separated fallback models from the env', function (): void {
 function analysisConfigSaveEnv(): array
 {
     return [
-        'max_file_bytes' => analysisConfigReadEnv('ANALYSIS_MAX_FILE_BYTES'),
-        'context_tokens' => analysisConfigReadEnv('ANALYSIS_CONTEXT_TOKENS'),
-        'context_ratio' => analysisConfigReadEnv('ANALYSIS_CONTEXT_RATIO'),
-        'verdict_hostile' => analysisConfigReadEnv('ANALYSIS_VERDICT_HOSTILE'),
-        'verdict_flagged' => analysisConfigReadEnv('ANALYSIS_VERDICT_FLAGGED'),
+        'ANALYSIS_MAX_FILE_BYTES' => analysisConfigReadEnv('ANALYSIS_MAX_FILE_BYTES'),
+        'ANALYSIS_CONTEXT_TOKENS' => analysisConfigReadEnv('ANALYSIS_CONTEXT_TOKENS'),
+        'ANALYSIS_CONTEXT_RATIO' => analysisConfigReadEnv('ANALYSIS_CONTEXT_RATIO'),
+        'ANALYSIS_VERDICT_HOSTILE' => analysisConfigReadEnv('ANALYSIS_VERDICT_HOSTILE'),
+        'ANALYSIS_VERDICT_FLAGGED' => analysisConfigReadEnv('ANALYSIS_VERDICT_FLAGGED'),
+        'ANALYSIS_LOCKFILE_KEEP_LINES' => analysisConfigReadEnv('ANALYSIS_LOCKFILE_KEEP_LINES'),
     ];
 }
 
@@ -236,14 +237,14 @@ function analysisConfigRestoreEnv(array $saved): void
 function openrouterConfigSaveEnv(): array
 {
     return [
-        'api_url' => openrouterConfigReadEnv('OPENROUTER_API_URL'),
-        'api_key' => openrouterConfigReadEnv('OPENROUTER_API_KEY'),
-        'model' => openrouterConfigReadEnv('OPENROUTER_MODEL'),
-        'fallback_models' => openrouterConfigReadEnv('OPENROUTER_FALLBACK_MODELS'),
-        'timeout' => openrouterConfigReadEnv('OPENROUTER_TIMEOUT'),
-        'retries' => openrouterConfigReadEnv('OPENROUTER_RETRIES'),
-        'max_tokens' => openrouterConfigReadEnv('OPENROUTER_MAX_TOKENS'),
-        'temperature' => openrouterConfigReadEnv('OPENROUTER_TEMPERATURE'),
+        'OPENROUTER_API_URL' => openrouterConfigReadEnv('OPENROUTER_API_URL'),
+        'OPENROUTER_API_KEY' => openrouterConfigReadEnv('OPENROUTER_API_KEY'),
+        'OPENROUTER_MODEL' => openrouterConfigReadEnv('OPENROUTER_MODEL'),
+        'OPENROUTER_FALLBACK_MODELS' => openrouterConfigReadEnv('OPENROUTER_FALLBACK_MODELS'),
+        'OPENROUTER_TIMEOUT' => openrouterConfigReadEnv('OPENROUTER_TIMEOUT'),
+        'OPENROUTER_RETRIES' => openrouterConfigReadEnv('OPENROUTER_RETRIES'),
+        'OPENROUTER_MAX_TOKENS' => openrouterConfigReadEnv('OPENROUTER_MAX_TOKENS'),
+        'OPENROUTER_TEMPERATURE' => openrouterConfigReadEnv('OPENROUTER_TEMPERATURE'),
     ];
 }
 
