@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\AnalyzeIncursionJob;
 use App\Jobs\ProcessIncursionJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -28,6 +29,10 @@ class GitHubWebhookController extends Controller
 
         if ($event === 'pull_request' && in_array($action, ['opened', 'synchronize', 'reopened', 'closed', 'edited'], true)) {
             ProcessIncursionJob::dispatch($request->all(), $delivery);
+        }
+
+        if ($event === 'pull_request' && in_array($action, ['opened', 'synchronize', 'reopened'], true)) {
+            AnalyzeIncursionJob::dispatch($request->all(), $delivery);
         }
 
         return response()->json([]);
