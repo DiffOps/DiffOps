@@ -61,4 +61,21 @@ return [
         'retries' => (int) env('GITHUB_RETRIES', 2),
     ],
 
+    'openrouter' => [
+        'api_url' => env('OPENROUTER_API_URL', 'https://openrouter.ai/api/v1'),
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'deepseek/deepseek-chat:free'),
+        'fallback_models' => array_values(array_filter(array_map(
+            'trim',
+            explode(',', (string) env('OPENROUTER_FALLBACK_MODELS', 'qwen/qwen-2.5-72b-instruct:free,meta-llama/llama-3.3-70b-instruct:free')),
+        ))),
+        'timeout' => (int) env('OPENROUTER_TIMEOUT', 30),
+        'retries' => (int) env('OPENROUTER_RETRIES', 3),
+        'max_tokens' => (int) env('OPENROUTER_MAX_TOKENS', 1024),
+        'temperature' => (int) env('OPENROUTER_TEMPERATURE', 0),
+        'retry_base_ms' => (int) env('OPENROUTER_RETRY_BASE_MS', 100),
+        'circuit_threshold' => (int) env('OPENROUTER_CIRCUIT_THRESHOLD', 3),
+        'circuit_cooldown' => (int) env('OPENROUTER_CIRCUIT_COOLDOWN', 60),
+    ],
+
 ];

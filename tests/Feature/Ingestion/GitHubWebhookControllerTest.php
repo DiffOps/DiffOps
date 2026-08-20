@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Jobs\AnalyzeIncursionJob;
 use App\Jobs\ProcessIncursionJob;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\TestResponse;
@@ -77,6 +78,32 @@ it('ignores unsupported pull_request actions', function (): void {
 
     Queue::assertNothingPushed();
 });
+
+it('dispatches the analysis job for diffing actions', function (string $action, array $payload): void {
+    Queue::fake();
+
+    githubWebhookCall('pull_request', $payload)->assertOk();
+
+    Queue::assertPushed(AnalyzeIncursionJob::class, fn (AnalyzeIncursionJob $job): bool => $job->deliveryId === GitHubWebhookFixtures::DELIVERY_ID);
+})->with([
+    'opened' => ['opened', GitHubWebhookFixtures::pullRequestOpened()],
+    'synchronize' => ['synchronize', GitHubWebhookFixtures::pullRequestSynchronize()],
+    'reopened' => ['reopened', GitHubWebhookFixtures::pullRequestReopened()],
+]);
+
+it('does not dispatch the analysis job for non-diffing events', function (string $event, array $payload): void {
+    Queue::fake();
+
+    githubWebhookCall($event, $payload)->assertOk();
+
+    Queue::assertNotPushed(AnalyzeIncursionJob::class);
+})->with([
+    'closed' => ['pull_request', GitHubWebhookFixtures::pullRequestClosed(false)],
+    'edited' => ['pull_request', GitHubWebhookFixtures::pullRequestEdited()],
+    'labeled' => ['pull_request', GitHubWebhookFixtures::pullRequestOpened(['action' => 'labeled'])],
+    'ping' => ['ping', GitHubWebhookFixtures::ping()],
+    'issues' => ['issues', ['action' => 'opened', 'issue' => ['number' => 1]]],
+]);
 
 it('rejects unsigned webhook requests through the real route', function (): void {
     Queue::fake();
