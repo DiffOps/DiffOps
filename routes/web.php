@@ -18,6 +18,13 @@ use Inertia\Inertia;
 | Protected by verify.supabase.jwt middleware for JWT stateless auth
 */
 
+// Public routes (landing page)
+Route::get('/', function () {
+    return Inertia::render('Welcome', [
+        'appName' => 'DiffOps',
+    ]);
+})->name('home');
+
 // Guest routes (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -27,7 +34,7 @@ Route::middleware('guest')->group(function () {
 // Protected routes
 Route::middleware(['verify.supabase.jwt'])->group(function () {
     // Dashboard
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Incursions (PR analyses)
     Route::get('/incursions', [IncursionController::class, 'index'])->name('incursions.index');
