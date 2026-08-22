@@ -33,17 +33,16 @@ it('builds the frontend assets before the tests', function (): void {
     expect(diffops_ci_yml())->toContain('npm run build');
 });
 
-it('keeps the pipeline offline without hardcoded secrets', function (): void {
+it('keeps the pipeline offline without secrets', function (): void {
     $yml = diffops_ci_yml();
 
-    // Check that no hardcoded secret VALUES are present (only ${{ secrets.* }} references allowed for production)
-    // Test values like 'test-secret-key' or test private keys are allowed for CI testing
     expect($yml)
         ->not->toContain('DB_PASSWORD')
-        ->not->toContain('secrets.')
-        ->not->toContain('-----BEGIN RSA PRIVATE KEY-----'); // No real private keys
-
-    // Verify that sensitive env vars use ${{ secrets.* }} syntax for production secrets
-    // Test values are allowed for CI testing
-    // This test ensures the pattern is followed for actual secrets
+        ->not->toContain('SUPABASE')
+        ->not->toContain('OPENROUTER')
+        ->not->toContain('GITHUB_TOKEN')
+        ->not->toContain('GITHUB_APP_PRIVATE_KEY')
+        ->not->toContain('GITHUB_WEBHOOK_SECRET')
+        ->not->toContain('BEGIN RSA')
+        ->not->toContain('secrets.');
 });
