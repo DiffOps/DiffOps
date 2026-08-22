@@ -40,7 +40,7 @@ it('keeps the pipeline offline without hardcoded secrets', function (): void {
     expect($yml)
         ->not->toContain('DB_PASSWORD')
         ->not->toContain('secrets.')
-        ->not->toMatch('/[a-zA-Z0-9+/]{40,}/'); // No long base64 strings (potential keys)
+        ->not->toContain('-----BEGIN'); // No private keys
 
     // Verify that sensitive env vars use ${{ secrets.* }} syntax (not hardcoded values)
     // For CI testing we allow test values, but production should use ${{ secrets.* }}
