@@ -23,7 +23,36 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - run: cp .env.example .env
-      - run: php artisan key:generate
+      - run: npm run test
       - run: vendor/bin/pint --test
-      - run: php artisan test
+      - run: |
+          php artisan test \
+            --env=testing \
+            --configuration=phpunit.xml \
+            --no-coverage
+        env:
+          APP_ENV: testing
+          APP_DEBUG: true
+          APP_KEY: base64:testkey123456789012345678901234
+          DB_CONNECTION: sqlite
+          DB_DATABASE: :memory:
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+          BROADCAST_CONNECTION: null
+          MAIL_MAILER: array
+          REDIS_CLIENT: predis
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: null
+          REDIS_DB: 0
+          SUPABASE_URL: https://test.supabase.co
+          SUPABASE_JWT_SECRET: test-secret-key-for-testing-only
+          SUPABASE_JWT_AUDIENCE: authenticated
+          SUPABASE_JWKS_URL: https://test.supabase.co/auth/v1/.well-known/jwks.json
+          GITHUB_APP_ID: 12345
+          GITHUB_APP_PRIVATE_KEY: "-----BEGIN RSA PRIVATE KEY-----\nTEST\n-----END RSA PRIVATE KEY-----"
+          GITHUB_WEBHOOK_SECRET: test-webhook-secret
+          GITHUB_API_URL: https://api.github.com
+          OPENROUTER_API_KEY: test-key
+          OPENROUTER_API_URL: https://openrouter.ai/api/v1
