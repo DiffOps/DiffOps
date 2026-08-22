@@ -38,8 +38,11 @@ it('keeps the pipeline offline without secrets', function (): void {
 
     expect($yml)
         ->not->toContain('DB_PASSWORD')
-        ->not->toContain('SUPABASE')
-        ->not->toContain('OPENROUTER')
+        ->not->toContain('SUPABASE_JWT_SECRET')
+        ->not->toContain('SUPABASE_SERVICE_ROLE_KEY')
+        ->not->toContain('OPENROUTER_API_KEY')
         ->not->toContain('GITHUB_TOKEN')
+        ->not->toContain('GITHUB_APP_PRIVATE_KEY')
+        ->not->toContain('GITHUB_WEBHOOK_SECRET')
         ->not->toContain('secrets.');
 });

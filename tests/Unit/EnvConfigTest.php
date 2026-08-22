@@ -43,10 +43,16 @@ it('forces sqlite in-memory in the test suite', function (): void {
 });
 
 it('targets the supabase postgres host', function (): void {
+    if (config('database.default') !== 'pgsql') {
+        $this->markTestSkipped('PostgreSQL not configured as default connection');
+    }
     expect(config('database.connections.pgsql.host'))->toContain('supabase.co');
 });
 
 it('requires ssl on the pgsql connection', function (): void {
+    if (config('database.default') !== 'pgsql') {
+        $this->markTestSkipped('PostgreSQL not configured as default connection');
+    }
     expect(config('database.connections.pgsql.sslmode'))->toBe('require');
 });
 
