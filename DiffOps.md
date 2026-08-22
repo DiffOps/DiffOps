@@ -342,6 +342,124 @@ Componentes: UI kit `Tactical/` (badges, meters, diff viewer, HUD stats, pills, 
 
 ---
 
+## 13.1 FASE F — PLANO DETALHADO (Web UI Command Center)
+
+### 13.1.1 Escopo e Unidades de Trabalho
+
+| Unidade | Entregável | Páginas/Rotas | Componentes Principais |
+|---|---|---|---|
+| **F-1** | Design Tokens & UI Kit Base | — | `theme/tokens.ts`, `components/Tactical/` (Badge, Button, Card, HUDStat, Pill, ThreatMeter, DefconMeter, VerdictBadge, DiffViewer, StatusPill, IncursionRow) |
+| **F-2** | Layout & Auth Guards | `/login`, `/register`, `/` (redirect) | `Layouts/TacticalLayout.jsx`, middleware `verify.supabase.jwt` nas rotas web, guard `web` |
+| **F-3** | Dashboard — Tactical HUD | `GET /` | Stats cards (PRs abertas, threat médio, DEFCON atual, tempo médio), `IncursionFeed` realtime (Supabase Realtime via `channel`), loading/empty states |
+| **F-4** | Incursion Detail — Recon Report | `GET /incursions/{analysis}` | `DiffViewer` terminal-style, `ThreatMeter` 0-100, `DefconMeter` 1-5, `FindingsList` ancorado por arquivo, `AuthorRiskCard` (F4), actions: Rescan, Comment on GitHub (F1) |
+| **F-5** | Repositories Management | `GET /repos`, `POST /repos`, `PATCH /repos/{id}`, `DELETE /repos/{id}` | Table/Grid de repos, toggle `is_active`, `comment_on_pr`, `escalate_on_hostile`, webhook URL, install GitHub App link |
+| **F-6** | Operations Log — Combat History | `GET /operations-log` | Tabela filtrável (ação, entidade, usuário, período), paginação, export CSV |
+| **F-7** | Briefing — Analytics | `GET /briefing` | Recharts: verdict distribution, threat score histogram, DEFCON trend, avg execution time, findings by category |
+| **F-8** | Watchlist & Settings | `GET /watchlist`, `GET /settings` | Watchlist: cards de repos seguidos com status realtime; Settings: perfil, preferências (tema, notificações) |
+| **F-9** | Supabase Realtime Integration | — | `useRealtime` hook, channels: `analyses`, `pull_requests`, `analysis_findings`, `contributor_risks`; RLS-aware subscriptions |
+
+### 13.1.2 Decisões Técnicas (Definidas)
+
+| Decisão | Escolha | Justificativa |
+|---|---|---|
+| **Inertia SSR** | **Sim** — `ssr: true` + `php artisan inertia:start-ssr` | First paint/SEO; complexidade aceita |
+| **Charts** | **Recharts** | React nativo, declarativo, citado no blueprint |
+| **Global State** | **Zustand** | Leve (~1kb), API simples, não requer provider |
+| **Ícones** | **lucide-react** | Tree-shakable, SVG, ~500 ícones, estilo técnico |
+| **Virtualização DiffViewer** | **react-window** | Robusto, 2.5kb gz, padrão da indústria |
+
+**Dependências adicionadas:**
+```json
+{
+  "dependencies": {
+    "lucide-react": "^0.400.0",
+    "recharts": "^2.12.0",
+    "zustand": "^4.5.0",
+    "react-window": "^1.8.10",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/react-window": "^1.8.8",
+    "vitest": "^2.0.0",
+    "@testing-library/react": "^15.0.0",
+    "@testing-library/jest-dom": "^6.4.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "happy-dom": "^14.0.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.2.0"
+  }
+}
+```
+
+### 13.1.3 Mockups (Descrição Textual)
+
+**F-1: Design Tokens** (`theme/tokens.ts`) — Exporta objeto `tokens` com: `colors` (paleta 7.2), `fontMono`, `fontSans`, `spacing`, `radius`, `shadows`, `breakpoints`, `zIndex`, `transition`. Componentes `Tactical` importam de `@/theme/tokens`.
+
+**F-2: Layout** (`Layouts/TacticalLayout.jsx`) — Shell `min-h-screen bg-obsidian`. Sidebar fixa `w-64 bg-asphalt` com navegação, user avatar dropdown. Header sticky `h-16 bg-plate` com breadcrumbs, status realtime (pill pulsing), relógio UTC mono. Mobile: sidebar drawer (hamburger). Main `flex-1 p-6` slot para page props.
+
+**F-3: Dashboard** — Grid 4 cols (xl)/2 (md)/1 (sm): `HUDStat` cards (totalOpenPRs, avgThreatScore, currentDefcon, avgExecutionTimeMs). `IncursionFeed` full-width: `IncursionRow` real-time (timestamp, repo/pr#, author, verdict badge, threat score mini, defcon badge, tempo exec). Estados: `scanning` (pulsing), `completed`, `failed`. WebSocket: `supabase.channel('analyses').on('INSERT', ...)`.
+
+**F-4: Incursion Detail** — Header: repo/pr#, author (avatar + risk fingerprint badge), verdict badge grande, threat meter circular, defcon meter segmentado, timestamp UTC. Tabs: [Diff Viewer] [Findings] [Risk Fingerprint] [Raw JSON]. `DiffViewer`: container `font-mono bg-obsidian`, linhas `+` verde / `-` vermelho / contexto cinza, findings inline (marcador ▸), virtualizado via `react-window`. `FindingsList`: grouped by file_path. `AuthorRiskCard`: score 0-100 circular, total PRs, flagged/hostile counts, avg findings/PR, is_new_contributor. Actions bar sticky: [Rescan], [Comment on GitHub].
+
+**F-5: Repositories** — Toolbar: [Add Repository] (modal), filter by org, search. Table: Name (link GitHub), Owner, Active (toggle), Comment on PR (toggle), Escalate Hostile (toggle + webhook URL), Webhook Status (pill), Last Incursion, Actions. Add/Edit Modal: form com `github_repo_id`, `name`, `full_name`, `owner_login`, `is_active`, `comment_on_pr`, `escalate_on_hostile`, `escalation_webhook_url`, `security_level`. Webhook helper: mostra URL pública esperada.
+
+**F-6: Operations Log** — Filters toolbar: date range, action type, entity type, user, text search. Table: Timestamp (mono), Action (badge), Entity (type + id link), User (avatar + name), Payload (expandable JSON). Pagination server-side. Export CSV button.
+
+**F-7: Briefing** — Tabs: [Overview] [Trends] [Heatmap]. Overview: Verdict distribution (donut `PieChart`), Threat score histogram (`BarChart`). Trends: `LineChart` — DEFCON médio/dia (30d), tempo médio exec/dia. Heatmap: findings por categoria x repo. Date range picker global (7/30/90 dias).
+
+**F-8: Watchlist & Settings** — Watchlist: grid `RepoWatchCard` (repo name, last incursion status, toggle follow, realtime pill). Settings: Profile (name, avatar, email — de Supabase profile), Preferences (theme: tactical-only, notifications: email/push toggles — stubbed).
+
+**F-9: Realtime Hook** — `useRealtime(channel, filters)` retorna `data[]`, `status` (connecting/connected/disconnected/error). Subscriptions por organização (RLS): `supabase.channel(\`org:${orgId}:analyses\`)`. Auto-reconnect com backoff.
+
+### 13.1.4 Testes Red Esperados
+
+**Backend (Pest) — `tests/Feature/Web/`**
+- `DashboardControllerTest`: GET / retorna 200 com props esperadas; middleware `verify.supabase.jwt` bloqueia não-autenticado
+- `IncursionDetailControllerTest`: GET /incursions/{id} retorna 200 com analysis + findings + pull_request + risk_fingerprint; 404/403
+- `RepositoriesControllerTest`: CRUD completo (create valida GitHub repo existe), read paginada, update toggles, delete; autorização commander/operator
+- `OperationsLogControllerTest`: GET com filtros (date, action, entity, user), paginação, export CSV
+- `BriefingControllerTest`: GET retorna agregações SQL (verdict dist, threat histogram, defcon trend)
+- `WatchlistControllerTest`: toggle follow/unfollow, lista com realtime status
+- `AuthControllerTest` (web): login via Inertia (redirect to Supabase OAuth), logout, guest middleware
+
+**Frontend (Vitest + RTL) — `resources/js/components/Tactical/__tests__/`**
+- Todos componentes atômicos: Badge, Button, Card, HUDStat, Pill, ThreatMeter, DefconMeter, VerdictBadge, DiffViewer, StatusPill, IncursionRow
+- Testes de contrato visual: render, variant classes, props, events (click, onChange), a11y (ARIA, focus-visible)
+- `useRealtime` hook: conecta, recebe INSERT/UPDATE/DELETE, limpa ao unmount
+
+### 13.1.5 Critérios de Aceitação
+
+1. **Todas as rotas web protegidas** — `verify.supabase.jwt` middleware ativo; guest redireciona para `/login`
+2. **Design System aplicado** — zero cores hardcoded; todos componentes usam `tokens`; scanlines/cantoneiras visuais nos cards
+3. **Realtime funcional** — feed do dashboard atualiza sem refresh ao inserir analysis via job
+4. **Diff Viewer performático** — diffs de 5000+ linhas renderizam < 200ms (virtualização `react-window`)
+5. **Acessibilidade** — semantic HTML, focus-visible, ARIA labels nos meters/badges, contraste AA (tokens já garantem)
+6. **Testes verdes** — Pest backend 100% pass; Vitest frontend 100% pass; cobertura mínima 80%
+7. **Build produção** — `npm run build` exit 0, assets manifest gerado, Vite manifest em `public/build`
+8. **Inertia SSR** — primeira carga renderiza HTML (não bloqueante para MVP)
+
+### 13.1.6 Ordem de Execução (BUILDER)
+
+```
+F-1  → Design Tokens & UI Kit (componentes atômicos) ✓
+F-2  → Layout + Auth Guards + Rotas base
+F-3  → Dashboard (HUD + Feed realtime)
+F-4  → Incursion Detail (DiffViewer + Findings + Risk)
+F-5  → Repositories CRUD
+F-6  → Operations Log
+F-7  → Briefing (Charts)
+F-8  → Watchlist + Settings
+F-9  → Integração Realtime completa + Polish
+```
+
+Cada unidade = 1 commit atômico (conventional) com testes daquela unidade. TDD: mockup → testes red → implementação green → refactor.
+
+---
+
 ## 14. MOBILE (Expo + NativeWind) — completo
 
 | Tela | Conteúdo |

@@ -41,5 +41,8 @@ it('keeps the pipeline offline without secrets', function (): void {
         ->not->toContain('SUPABASE')
         ->not->toContain('OPENROUTER')
         ->not->toContain('GITHUB_TOKEN')
+        ->not->toContain('GITHUB_APP_PRIVATE_KEY')
+        ->not->toContain('GITHUB_WEBHOOK_SECRET')
+        ->not->toContain('BEGIN RSA')
         ->not->toContain('secrets.');
 });
