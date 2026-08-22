@@ -20,8 +20,8 @@ class UpdateSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => 'sometimes|string|min:2|max:50|alpha_dash|unique:profiles,username,' . auth()->id(),
-            'email' => 'sometimes|email|max:255|unique:users,email,' . auth()->id(),
+            'username' => 'sometimes|string|min:2|max:50|alpha_dash|unique:profiles,username,'.auth()->id(),
+            'email' => 'sometimes|email|max:255|unique:users,email,'.auth()->id(),
             'preferences.notifications.email' => 'boolean',
             'preferences.notifications.push' => 'boolean',
         ];

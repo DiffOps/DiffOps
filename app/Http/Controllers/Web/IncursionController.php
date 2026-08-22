@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Analysis;
 use App\Jobs\AnalyzeIncursionJob;
+use App\Models\Analysis;
+use App\Models\ContributorRisk;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -66,7 +67,7 @@ class IncursionController extends Controller
         // Get contributor risk fingerprint
         $riskFingerprint = null;
         if ($analysis->pullRequest->author) {
-            $riskFingerprint = \App\Models\ContributorRisk::where('organization_id', $organization->id)
+            $riskFingerprint = ContributorRisk::where('organization_id', $organization->id)
                 ->where('author_username', $analysis->pullRequest->author->username)
                 ->first();
         }
@@ -156,7 +157,7 @@ class IncursionController extends Controller
             abort(403);
         }
 
-        if (!$analysis->pullRequest->repository->comment_on_pr) {
+        if (! $analysis->pullRequest->repository->comment_on_pr) {
             return back()->withErrors(['comment' => 'Comentários automáticos desativados para este repositório.']);
         }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Analysis;
+use App\Models\AnalysisFinding;
 use App\Models\PullRequest;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -59,7 +60,7 @@ class BriefingController extends Controller
             ->toArray();
 
         // Findings by category
-        $findingsByCategory = \App\Models\AnalysisFinding::whereHas('analysis.pullRequest.repository', fn ($q) => $q->where('organization_id', $organization->id))
+        $findingsByCategory = AnalysisFinding::whereHas('analysis.pullRequest.repository', fn ($q) => $q->where('organization_id', $organization->id))
             ->whereHas('analysis', fn ($q) => $q->where('created_at', '>=', $since))
             ->selectRaw('category, severity, count(*) as count')
             ->groupBy('category', 'severity')

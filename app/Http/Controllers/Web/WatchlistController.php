@@ -66,6 +66,7 @@ class WatchlistController extends Controller
 
         if ($existing) {
             $existing->delete();
+
             return back()->with('success', 'Repositório removido da watchlist.');
         }
 

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Analysis;
 use App\Models\PullRequest;
-use App\Models\Repository;
 use Inertia\Inertia;
 use Inertia\Response;
 

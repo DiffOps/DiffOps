@@ -91,18 +91,30 @@ class OperationsLogController extends Controller
             ->latest('created_at');
 
         // Apply same filters
-        if ($request->filled('action')) { $query->where('action', $request->action); }
-        if ($request->filled('entity_type')) { $query->where('entity_type', $request->entity_type); }
-        if ($request->filled('entity_id')) { $query->where('entity_id', $request->entity_id); }
-        if ($request->filled('user_id')) { $query->where('user_id', $request->user_id); }
-        if ($request->filled('date_from')) { $query->whereDate('created_at', '>=', $request->date_from); }
-        if ($request->filled('date_to')) { $query->whereDate('created_at', '<=', $request->date_to); }
+        if ($request->filled('action')) {
+            $query->where('action', $request->action);
+        }
+        if ($request->filled('entity_type')) {
+            $query->where('entity_type', $request->entity_type);
+        }
+        if ($request->filled('entity_id')) {
+            $query->where('entity_id', $request->entity_id);
+        }
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
 
         $logs = $query->get();
 
         $headers = [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="combat-history-' . now()->format('Y-m-d') . '.csv"',
+            'Content-Disposition' => 'attachment; filename="combat-history-'.now()->format('Y-m-d').'.csv"',
         ];
 
         $callback = function () use ($logs) {

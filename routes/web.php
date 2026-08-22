@@ -1,13 +1,13 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Web\BriefingController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\IncursionController;
-use App\Http\Controllers\Web\RepositoryController;
 use App\Http\Controllers\Web\OperationsLogController;
-use App\Http\Controllers\Web\BriefingController;
-use App\Http\Controllers\Web\WatchlistController;
+use App\Http\Controllers\Web\RepositoryController;
 use App\Http\Controllers\Web\SettingsController;
-use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Web\WatchlistController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
