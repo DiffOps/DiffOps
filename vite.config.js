@@ -8,6 +8,7 @@ export default defineConfig({
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.jsx'],
             refresh: true,
+            ssr: 'resources/js/ssr.jsx',
         }),
         tailwindcss(),
         react(),
@@ -16,5 +17,8 @@ export default defineConfig({
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
+    },
+    ssr: {
+        noExternal: ['@inertiajs/react', 'lucide-react', 'recharts', 'zustand', 'react-window'],
     },
 });
