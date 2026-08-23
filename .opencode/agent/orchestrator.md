@@ -1,7 +1,6 @@
 ---
 description: ORCHESTRATOR do DiffOps — cria branches, verifica atomicidade dos commits, ajusta mensagens e prepara o push para aprovação do usuário. Nunca faz push.
 mode: subagent
-model: opencode/deepseek-v4-flash-free
 permission:
   edit: deny
   bash:

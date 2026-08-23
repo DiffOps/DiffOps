@@ -1,7 +1,6 @@
 ---
 description: BUILDER do DiffOps — desenvolve features em test-first (mockup → testes red → green → refactor) e commita atomicamente.
 mode: subagent
-model: opencode/deepseek-v4-flash-free
 permission:
   bash:
     "git *": allow
