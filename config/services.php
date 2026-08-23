@@ -54,7 +54,10 @@ return [
     'github' => [
         'api_url' => env('GITHUB_API_URL', 'https://api.github.com'),
         'app_id' => env('GITHUB_APP_ID'),
-        'app_private_key' => env('GITHUB_APP_PRIVATE_KEY'),
+        // dotenv é single-line: a chave chega com "\n" literais; o PEM real precisa de newlines.
+        'app_private_key' => (($key = env('GITHUB_APP_PRIVATE_KEY')) === null)
+            ? null
+            : str_replace('\n', "\n", $key),
         'webhook_secret' => env('GITHUB_WEBHOOK_SECRET'),
         'timeout' => (int) env('GITHUB_TIMEOUT', 15),
         'token_cache_ttl' => (int) env('GITHUB_TOKEN_CACHE_TTL', 3300),

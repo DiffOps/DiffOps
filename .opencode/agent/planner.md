@@ -1,7 +1,6 @@
 ---
 description: PLANNER do DiffOps — planeja tarefas de desenvolvimento (escopo, mockups, testes red, critérios de aceitação). Somente leitura.
 mode: subagent
-model: opencode/deepseek-v4-flash-free
 permission:
   edit: deny
   bash:

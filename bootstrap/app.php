@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Atrás de proxy/túnel (Cloud Shell Preview, ngrok, Cloudflare): o esquema
+        // https chega via X-Forwarded-Proto; sem isso os assets saem http:// e
+        // navegadores bloqueiam por mixed-content (tela branca do Inertia).
+        $middleware->trustProxies(at: '*');
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);

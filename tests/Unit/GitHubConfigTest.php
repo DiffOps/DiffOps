@@ -57,6 +57,24 @@ it('reads the github config values from the env', function (): void {
     }
 });
 
+it('converts escaped newlines in the private key into real pem lines', function (): void {
+    $saved = githubConfigSaveEnv();
+
+    try {
+        githubConfigUnsetEnv();
+
+        $_ENV['GITHUB_APP_PRIVATE_KEY'] = '-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA8x7b\n-----END RSA PRIVATE KEY-----\n';
+
+        $config = require base_path('config/services.php');
+
+        expect($config['github']['app_private_key'])->toBe(
+            "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA8x7b\n-----END RSA PRIVATE KEY-----\n"
+        );
+    } finally {
+        githubConfigRestoreEnv($saved);
+    }
+});
+
 it('parses the github numeric env values as integers', function (): void {
     $saved = githubConfigSaveEnv();
 

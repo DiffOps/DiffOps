@@ -1,7 +1,6 @@
 ---
 description: TESTER do DiffOps — executa as suítes de teste (Pest, Vitest, jest-expo), valida cobertura e emite laudo APROVADO/REPROVADO.
 mode: subagent
-model: opencode/deepseek-v4-flash-free
 permission:
   edit: deny
   bash: allow
