@@ -27,6 +27,9 @@ services:
 
   node:
     image: node:24-alpine
+    # Roda como o uid/gid do host: artefatos de public/build nascem com dono
+    # utilizável (sem EACCES no build local) em vez de root.
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - .:/var/www
       # Isola o node_modules do container (Alpine/musl, root): sem isso ele
