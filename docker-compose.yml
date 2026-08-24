@@ -29,6 +29,10 @@ services:
     image: node:24-alpine
     volumes:
       - .:/var/www
+      # Isola o node_modules do container (Alpine/musl, root): sem isso ele
+      # sobrescreve o node_modules glibc do host a cada build e quebra o
+      # rollup/vitest local ("Cannot find module @rollup/rollup-linux-x64-gnu").
+      - node_modules:/var/www/node_modules
     working_dir: /var/www
     command: sh -c "npm install && npm run build"
     restart: "no"
@@ -56,3 +60,5 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+volumes:
+  node_modules:
