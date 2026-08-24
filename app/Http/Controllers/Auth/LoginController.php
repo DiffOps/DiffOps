@@ -17,4 +17,12 @@ class LoginController extends Controller
             'appName' => config('app.name', 'DiffOps'),
         ]);
     }
+
+    /**
+     * Show the registration page.
+     */
+    public function showRegister(): Response
+    {
+        return Inertia::render('Auth/Register');
+    }
 }

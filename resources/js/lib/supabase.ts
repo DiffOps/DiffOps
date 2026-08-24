@@ -26,3 +26,37 @@ export async function exchangeAndBridgeSession(): Promise<boolean> {
 
     return true;
 }
+
+export interface RegisterResult {
+    /** True when the project requires email confirmation before a session exists. */
+    needsConfirmation: boolean;
+}
+
+/**
+ * Create the account without OAuth. When Supabase returns an immediate
+ * session (email confirmation disabled), bridge it right away so the user
+ * lands authenticated.
+ */
+export async function registerWithEmail(email: string, password: string, fullName: string): Promise<RegisterResult> {
+    if (!supabase) {
+        throw new Error('Autenticação não configurada neste ambiente.');
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } },
+    });
+
+    if (error) {
+        throw error;
+    }
+
+    if (!data.session) {
+        return { needsConfirmation: true };
+    }
+
+    await axios.post('/api/auth/session', { token: data.session.access_token });
+
+    return { needsConfirmation: false };
+}
