@@ -23,7 +23,9 @@ class VerifySupabaseJwt
         }
 
         if (Auth::guard('supabase')->guest()) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
+            return $request->expectsJson()
+                ? response()->json(['message' => 'Unauthenticated.'], 401)
+                : redirect()->guest(route('login'));
         }
 
         return $next($request);

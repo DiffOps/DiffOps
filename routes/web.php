@@ -9,7 +9,6 @@ use App\Http\Controllers\Web\RepositoryController;
 use App\Http\Controllers\Web\SettingsController;
 use App\Http\Controllers\Web\WatchlistController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,13 +17,6 @@ use Inertia\Inertia;
 | Protected by verify.supabase.jwt middleware for JWT stateless auth
 */
 
-// Public routes (landing page)
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'appName' => 'DiffOps',
-    ]);
-})->name('home');
-
 // Guest routes (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -32,8 +24,9 @@ Route::middleware('guest')->group(function () {
 
 // Protected routes
 Route::middleware(['verify.supabase.jwt'])->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard (raiz, conforme DiffOps.md §13)
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.alias');
 
     // Incursions (PR analyses)
     Route::get('/incursions', [IncursionController::class, 'index'])->name('incursions.index');
@@ -65,7 +58,5 @@ Route::middleware(['verify.supabase.jwt'])->group(function () {
 
 });
 
-// Fallback for SPA routing
-Route::fallback(function () {
-    return Inertia::render('Welcome', ['appName' => 'DiffOps']);
-});
+// Fallback: URL desconhecida volta ao fluxo de auth
+Route::fallback(fn () => redirect()->route('login'));

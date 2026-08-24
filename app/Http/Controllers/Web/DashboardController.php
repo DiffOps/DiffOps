@@ -15,8 +15,22 @@ class DashboardController extends Controller
      */
     public function index(): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
+
+        if ($organization === null) {
+            // Usuário sem organização ainda: dashboard em estado vazio.
+            return Inertia::render('Dashboard', [
+                'stats' => [
+                    'totalOpenPRs' => 0,
+                    'avgThreatScore' => 0,
+                    'currentDefcon' => 5,
+                    'avgExecutionTimeMs' => 0,
+                ],
+                'incursions' => [],
+                'realtime' => ['channel' => 'org:0:analyses'],
+            ]);
+        }
 
         // HUD Stats
         $totalOpenPRs = PullRequest::whereHas('repository', fn ($q) => $q->where('organization_id', $organization->id))

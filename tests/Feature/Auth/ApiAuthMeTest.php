@@ -106,6 +106,19 @@ it('rejects a request with an invalid token', function () {
         ->assertStatus(401);
 });
 
-it('keeps the web root serving as a smoke check', function () {
-    $this->get('/')->assertOk();
+it('serves the web root for a valid session cookie', function () {
+    User::create([
+        'name' => 'Operator',
+        'email' => 'root-operator@diffops.test',
+        'password' => 'secret',
+        'supabase_uid' => TestJwtSigner::SUB,
+    ]);
+
+    $this->withUnencryptedCookie('diffops_session', TestJwtSigner::sign())
+        ->get('/')
+        ->assertOk();
+});
+
+it('redirects guests from the web root to the login page', function () {
+    $this->get('/')->assertRedirect(route('login'));
 });

@@ -15,7 +15,7 @@ class OperationsLogController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         $query = AuditLog::with('user')
@@ -83,7 +83,7 @@ class OperationsLogController extends Controller
      */
     public function export(Request $request)
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         $query = AuditLog::with('user')

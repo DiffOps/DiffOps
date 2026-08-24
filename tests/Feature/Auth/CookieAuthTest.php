@@ -48,7 +48,7 @@ it('rejects an invalid session cookie', function (): void {
     seedOperator();
 
     $this->withUnencryptedCookie(COOKIE_NAME, TestJwtSigner::sign(['exp' => time() - 3600]))
-        ->get('/_auth/probe-web')
+        ->getJson('/_auth/probe-web')
         ->assertStatus(401);
 });
 

@@ -18,7 +18,7 @@ class BriefingController extends Controller
      */
     public function index(Request $request): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         $days = $request->integer('days', 30);
