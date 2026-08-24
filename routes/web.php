@@ -28,7 +28,6 @@ Route::get('/', function () {
 // Guest routes (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'authenticate']);
 });
 
 // Protected routes
@@ -64,8 +63,6 @@ Route::middleware(['verify.supabase.jwt'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
 
-    // Logout
-    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });
 
 // Fallback for SPA routing
