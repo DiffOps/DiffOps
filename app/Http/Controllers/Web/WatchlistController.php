@@ -16,7 +16,7 @@ class WatchlistController extends Controller
      */
     public function index(): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
 
         $watchlist = RepoWatchlist::with(['repository' => fn ($q) => $q->with('organization')])
             ->where('user_id', $user->id)
@@ -58,7 +58,7 @@ class WatchlistController extends Controller
      */
     public function toggle(Repository $repository): RedirectResponse
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
 
         $existing = RepoWatchlist::where('user_id', $user->id)
             ->where('repository_id', $repository->id)

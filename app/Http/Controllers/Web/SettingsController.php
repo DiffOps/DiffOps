@@ -15,7 +15,7 @@ class SettingsController extends Controller
      */
     public function index(): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $profile = $user->profile;
 
         return Inertia::render('Settings/Index', [
@@ -44,7 +44,7 @@ class SettingsController extends Controller
      */
     public function update(UpdateSettingsRequest $request): RedirectResponse
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $validated = $request->validated();
 
         $user->update([

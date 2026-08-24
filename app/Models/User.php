@@ -100,6 +100,18 @@ class User extends Authenticatable
      *
      * @return BelongsToMany<Organization, $this>
      */
+    /**
+     * The organization context for the web UI: first membership (F17 will add
+     * explicit org switching). Null for fresh users before any membership.
+     */
+    public function getCurrentOrganizationAttribute(): ?Organization
+    {
+        /** @var Organization|null $first */
+        $first = $this->organizations()->first();
+
+        return $first;
+    }
+
     public function organizations(): BelongsToMany
     {
         return $this->belongsToMany(Organization::class, 'organization_members');

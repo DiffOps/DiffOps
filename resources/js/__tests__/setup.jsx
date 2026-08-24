@@ -1,6 +1,14 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+const routerMock = {
+    replace: vi.fn(),
+    visit: vi.fn(),
+    get: vi.fn(),
+    post: vi.fn(),
+    reload: vi.fn(),
+};
+
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
@@ -12,11 +20,15 @@ vi.mock('@inertiajs/react', () => ({
         component: 'Dashboard',
         version: '1',
     }),
+    useRouter: () => routerMock,
+    router: routerMock,
     Head: ({ children }) => children,
     Link: ({ children, href, ...props }) => (
         <a href={href} {...props}>{children}</a>
     ),
 }));
+
+export { routerMock };
 
 vi.mock('zustand', () => ({
     create: (fn) => {

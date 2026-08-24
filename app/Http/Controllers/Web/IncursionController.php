@@ -16,7 +16,7 @@ class IncursionController extends Controller
      */
     public function index(): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         $incursions = Analysis::with(['pullRequest.repository', 'pullRequest.author'])
@@ -50,7 +50,7 @@ class IncursionController extends Controller
      */
     public function show(Analysis $analysis): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         // Ensure the analysis belongs to user's organization
@@ -118,7 +118,7 @@ class IncursionController extends Controller
      */
     public function rescan(Analysis $analysis)
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         if ($analysis->pullRequest->repository->organization_id !== $organization->id) {
@@ -150,7 +150,7 @@ class IncursionController extends Controller
      */
     public function commentOnPr(Analysis $analysis)
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         if ($analysis->pullRequest->repository->organization_id !== $organization->id) {

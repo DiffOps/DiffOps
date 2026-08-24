@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // navegadores bloqueiam por mixed-content (tela branca do Inertia).
         $middleware->trustProxies(at: '*');
 
+        // O cookie de sessão web carrega um JWT assinado pelo Supabase (integridade
+        // própria); criptografia de cookie do framework fica desligada para este
+        // nome, mantendo o comportamento determinístico em todos os ambientes.
+        $middleware->encryptCookies(except: ['diffops_session']);
+
         $middleware->web(append: [
             HandleInertiaRequests::class,
         ]);

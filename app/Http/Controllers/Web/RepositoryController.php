@@ -22,7 +22,7 @@ class RepositoryController extends Controller
      */
     public function index(): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         $repositories = Repository::where('organization_id', $organization->id)
@@ -57,7 +57,7 @@ class RepositoryController extends Controller
      */
     public function store(StoreRepositoryRequest $request): RedirectResponse
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         $githubRepoId = $request->validated()['github_repo_id'];
@@ -95,7 +95,7 @@ class RepositoryController extends Controller
      */
     public function show(Repository $repository): Response
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         if ($repository->organization_id !== $organization->id) {
@@ -146,7 +146,7 @@ class RepositoryController extends Controller
      */
     public function update(UpdateRepositoryRequest $request, Repository $repository): RedirectResponse
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         if ($repository->organization_id !== $organization->id) {
@@ -163,7 +163,7 @@ class RepositoryController extends Controller
      */
     public function destroy(Repository $repository): RedirectResponse
     {
-        $user = auth()->user();
+        $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
         if ($repository->organization_id !== $organization->id) {

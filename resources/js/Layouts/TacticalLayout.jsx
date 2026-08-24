@@ -2,7 +2,10 @@ import { ReactNode } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutDashboard, GitBranch, FileText, Activity, Settings, Eye, LogOut, Menu, X, Shield, BarChart2 } from 'lucide-react';
 import { useState } from 'react';
+import { router } from '@inertiajs/react';
+import axios from 'axios';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -89,7 +92,22 @@ export function TacticalLayout({ children }: { children: ReactNode }) {
                                     <p className="text-[10px] font-mono text-barrel truncate">{auth.user.email}</p>
                                 </div>
                             </div>
-                        ) : (
+                        ) : null}
+                        {auth?.user && (
+                            <button
+                                type="button"
+                                className="mt-2 flex items-center justify-center gap-2 w-full px-3 py-2 text-xs font-mono text-defcon-red border border-defcon-red/30 rounded-lg hover:bg-defcon-red/10 transition-colors"
+                                onClick={async () => {
+                                    await supabase?.auth.signOut();
+                                    await axios.delete('/api/auth/session');
+                                    router.visit('/login');
+                                }}
+                            >
+                                <LogOut className="h-4 w-4" />
+                                Logout
+                            </button>
+                        )}
+                        {!auth?.user ? (
                             <Link
                                 href="/login"
                                 className="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm font-mono text-nv-green border border-nv-green/30 rounded-lg hover:bg-nv-green/10 transition-colors"

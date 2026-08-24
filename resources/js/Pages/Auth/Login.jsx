@@ -1,32 +1,77 @@
 import { useState } from 'react';
 import { usePage, Head } from '@inertiajs/react';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { Shield, Github, Lock, Mail, AlertCircle, Loader2, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
 import { Card, Button, Badge } from '@/components/Tactical';
+import { supabase } from '@/lib/supabase';
 
 export default function Login() {
     const { errors } = usePage().props;
     const [showPassword, setShowPassword] = useState(false);
     const [oauthLoading, setOauthLoading] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
+    const [processing, setProcessing] = useState(false);
 
-    const { data, setData, setError, processing, recentlySuccessful } = useForm({
+    const { data, setData } = useForm({
         email: '',
         password: '',
         remember: false,
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        post(route('login'), {
-            onSuccess: () => {},
-            onError: (err) => setError('general', err.message || 'Falha no login'),
+    async function bridgeAndEnter(token) {
+        await axios.post('/api/auth/session', { token });
+        router.replace('/dashboard');
+    }
+
+    const handleOAuth = async () => {
+        setOauthLoading(true);
+
+        if (!supabase) {
+            setFormErrors({ general: 'Autenticação não configurada neste ambiente.' });
+            setOauthLoading(false);
+            return;
+        }
+
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'github',
+            options: { redirectTo: `${window.location.origin}/auth/callback` },
         });
+
+        if (error) {
+            setFormErrors({ general: error.message });
+            setOauthLoading(false);
+        }
     };
 
-    const handleOAuth = () => {
-        setOauthLoading(true);
-        // Redirect to Supabase OAuth GitHub
-        window.location.href = `${import.meta.env.VITE_SUPABASE_URL}/auth/v1/authorize?provider=github&redirect_to=${encodeURIComponent(window.location.origin)}/auth/callback`;
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setProcessing(true);
+        setFormErrors({});
+
+        if (!supabase) {
+            setFormErrors({ general: 'Autenticação não configurada neste ambiente.' });
+            setProcessing(false);
+            return;
+        }
+
+        const { data: sessionData, error } = await supabase.auth.signInWithPassword({
+            email: data.email,
+            password: data.password,
+        });
+
+        if (error || !sessionData?.session) {
+            setFormErrors({ general: error?.message ?? 'Falha no login' });
+            setProcessing(false);
+            return;
+        }
+
+        try {
+            await bridgeAndEnter(sessionData.session.access_token);
+        } catch {
+            setFormErrors({ general: 'Não foi possível iniciar a sessão.' });
+            setProcessing(false);
+        }
     };
 
     return (
@@ -74,10 +119,10 @@ export default function Login() {
                     {/* Email/Password Form */}
                     <Card>
                         <form onSubmit={handleSubmit} className="space-y-4">
-                            {errors.general && (
+                            {formErrors.general && (
                                 <div className="flex items-center gap-2 p-3 bg-defcon-red/10 border border-defcon-red/30 rounded-lg text-defcon-red text-sm font-mono">
                                     <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                                    {errors.general}
+                                    {formErrors.general}
                                 </div>
                             )}
 
@@ -97,7 +142,7 @@ export default function Login() {
                                         autoComplete="email"
                                     />
                                 </div>
-                                {errors.email && <p className="mt-1 text-sm text-defcon-red">{errors.email}</p>}
+                                {formErrors.email && <p className="mt-1 text-sm text-defcon-red">{formErrors.email}</p>}
                             </div>
 
                             <div>
@@ -123,7 +168,7 @@ export default function Login() {
                                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </button>
                                 </div>
-                                {errors.password && <p className="mt-1 text-sm text-defcon-red">{errors.password}</p>}
+                                {formErrors.password && <p className="mt-1 text-sm text-defcon-red">{formErrors.password}</p>}
                             </div>
 
                             <div className="flex items-center justify-between">
