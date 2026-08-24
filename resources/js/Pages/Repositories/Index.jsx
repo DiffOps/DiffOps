@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePage, Head, Link } from '@inertiajs/react';
-import { Plus, Search, Filter, ExternalLink, Settings, Wifi, WifiOff, AlertTriangle, CheckCircle, Trash2, Edit, Loader2 } from 'lucide-react';
+import { Plus, Search, Filter, ExternalLink, Settings, Wifi, WifiOff, AlertTriangle, CheckCircle, XCircle, Trash2, Edit, Loader2, Copy, X } from 'lucide-react';
 import { Card, Button, Badge, StatusPill, Pill } from '@/components/Tactical';
 
 export default function RepositoriesIndex() {

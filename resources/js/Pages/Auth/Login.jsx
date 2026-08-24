@@ -165,7 +165,7 @@ export default function Login() {
                             <p className="text-[10px] text-dusk">JWT stateless via Supabase</p>
                         </div>
                         <div className="p-4 bg-plate border border-graphite rounded-lg">
-                            <GitHub className="h-8 w-8 mx-auto mb-2 text-comms-cyan" />
+                            <Github className="h-8 w-8 mx-auto mb-2 text-comms-cyan" />
                             <p className="font-mono text-xs text-bone">OAuth GitHub</p>
                             <p className="text-[10px] text-dusk">Login único integrado</p>
                         </div>
