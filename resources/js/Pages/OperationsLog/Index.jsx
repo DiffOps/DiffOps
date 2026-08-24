@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePage, Head, Link, useForm } from '@inertiajs/react';
-import { Calendar, Filter, Download, Search, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, XCircle, Loader2, User, Database, GitBranch, FileText, Shield } from 'lucide-react';
+import { Calendar, Filter, Download, Search, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, XCircle, Loader2, User, Database, GitBranch, FileText, Shield, Plus, Edit, Trash2, MessageSquare, RotateCcw } from 'lucide-react';
 import { Card, Button, Badge, Pill, StatusPill } from '@/components/Tactical';
 
 const ACTION_ICONS = {

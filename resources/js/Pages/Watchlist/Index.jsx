@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePage, Head } from '@inertiajs/react';
-import { Eye, EyeOff, ExternalLink, Shield, AlertTriangle, CheckCircle, XCircle, Loader2, Radio } from 'lucide-react';
+import { Eye, EyeOff, ExternalLink, Shield, AlertTriangle, CheckCircle, XCircle, Loader2, Radio, Plus } from 'lucide-react';
 import { Link, useForm } from '@inertiajs/react';
 import { Card, Button, StatusPill, VerdictBadge, Badge, Pill } from '@/components/Tactical';
 import { useRealtime } from '@/hooks/useRealtime';
