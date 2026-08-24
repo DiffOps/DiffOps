@@ -11,7 +11,7 @@ Padronização obrigatória de branches, commits e push no projeto.
 Formato: `@<user>/<num-sequencial>/<tipo>/<descricao>`
 
 - `<user>`: username do GitHub do autor da tarefa.
-- `<num-sequencial>`: número sequencial da tarefa (sem issue → contador incremental).
+- `<num-sequencial>`: **número da issue no GitHub** da etapa/unidade (abrir issue antes da branch).
 - `<tipo>`: `feat | fix | chore | docs | refactor | test | perf | style | build | ci`.
 - `<descricao>`: kebab-case curta.
 
