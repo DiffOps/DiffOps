@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 // Guest routes (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::get('/register', [LoginController::class, 'showRegister'])->name('register');
 });
 
 // Protected routes
