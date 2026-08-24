@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePage, Head } from '@inertiajs/react';
-import { Link, router } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { Shield, Github, Lock, Mail, AlertCircle, Loader2, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { Card, Button, Badge } from '@/components/Tactical';
