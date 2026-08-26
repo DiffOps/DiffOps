@@ -7,6 +7,27 @@ description: Use para QUALQUER operação git no projeto DiffOps (criar branch, 
 
 Padronização obrigatória de branches, commits e push no projeto.
 
+## 0. Issue antes da branch
+
+Nenhuma unidade começa sem uma **problemática registrada**. Estrutura oficial da issue:
+
+```markdown
+## Problemática
+<sintoma observável / o que dói>
+
+## Causa/contexto
+<análise técnica>
+
+## Escopo
+<dentro e fora>
+
+## Critérios de aceitação
+- [ ] <verificável>
+```
+
+A branch usa `<num>` = **número da issue**; a descrição da PR inclui `Closes #<issue>`;
+issues criadas entram no GitHub Project (KanBan).
+
 ## 1. Branches
 Formato: `@<user>/<num-sequencial>/<tipo>/<descricao>`
 
