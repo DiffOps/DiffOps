@@ -9,12 +9,21 @@ const routerMock = {
     reload: vi.fn(),
 };
 
+// Props compartilhadas das Pages: testes podem sobrescrever por página antes
+// do render (window.__pageProps = { Dashboard: {...} }) — o mock faz o merge.
+const basePageProps = {
+    auth: { user: null },
+    flash: {},
+    errors: {},
+};
+
+globalThis.__pageProps = {};
+
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
-            auth: { user: null },
-            flash: {},
-            errors: {},
+            ...basePageProps,
+            ...(globalThis.__pageProps || {}),
         },
         url: '/',
         component: 'Dashboard',
@@ -46,7 +55,25 @@ vi.mock('@inertiajs/react', () => ({
     ),
 }));
 
+vi.mock('react-window', () => ({
+    // Render-prop síncrona: devolve as linhas visíveis sem virtualizar,
+    // suficiente para smoke tests em happy-dom (evita string refs).
+    FixedSizeList: ({ itemCount, children }) => (
+        <div>
+            {Array.from({ length: itemCount ?? 0 }, (_, index) =>
+                children({ index, style: {} }),
+            )}
+        </div>
+    ),
+}));
+
 export { routerMock };
+
+// supabase-js ≥2.14 importa realtime e lança em Node sem WebSocket nativo;
+// nenhum teste cria client de verdade — mock evita o import do pacote real.
+vi.mock('@supabase/supabase-js', () => ({
+    createClient: vi.fn(() => null),
+}));
 
 vi.mock('zustand', () => ({
     create: (fn) => {
