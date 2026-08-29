@@ -15,7 +15,7 @@ export function DiffViewer({
     className = '',
 }) {
     const [containerWidth, setContainerWidth] = useState(800);
-    const listRef = useRef<List>(null);
+    const listRef = useRef(null);
 
     useEffect(() => {
         const handleResize = () => setContainerWidth(window.innerWidth);
