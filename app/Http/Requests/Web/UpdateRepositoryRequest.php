@@ -25,6 +25,7 @@ class UpdateRepositoryRequest extends FormRequest
             'escalate_on_hostile' => 'boolean',
             'escalation_webhook_url' => 'nullable|url|max:500',
             'security_level' => 'in:standard,elevated,critical',
+            'installation_id' => 'nullable|integer|min:1',
         ];
     }
 }

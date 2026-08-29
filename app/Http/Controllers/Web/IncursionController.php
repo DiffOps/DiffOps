@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\AnalyzeIncursionJob;
-use App\Models\Analysis;
+use App\Jobs\PostReconCommentJob;
 use App\Models\ContributorRisk;
+use App\Models\PullRequest;
+use App\Models\Repository;
+use App\Models\RiskAssessment as Analysis;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,15 +29,20 @@ class IncursionController extends Controller
             ]);
         }
 
-        $incursions = Analysis::with(['pullRequest.repository', 'pullRequest.author'])
-            ->whereHas('pullRequest.repository', fn ($q) => $q->where('organization_id', $organization->id))
+        $registeredRepoIds = Repository::where('organization_id', $organization->id)
+            ->pluck('github_repo_id');
+
+        $incursions = Analysis::with(['pullRequest.author'])
             ->where('verdict', '!=', 'pending')
+            ->whereHas('pullRequest', fn ($q) => $q
+                ->where('organization_id', $organization->id)
+                ->whereIn('github_repo_id', $registeredRepoIds))
             ->latest('created_at')
             ->paginate(20)
             ->through(fn ($analysis) => [
                 'id' => $analysis->id,
                 'timestamp' => $analysis->created_at->toISOString(),
-                'repository' => $analysis->pullRequest->repository->full_name,
+                'repository' => optional($this->resolveRepository($analysis->pullRequest))->full_name ?? 'unknown',
                 'prNumber' => $analysis->pullRequest->github_pr_number,
                 'author' => [
                     'username' => $analysis->pullRequest->author->username ?? 'unknown',
@@ -65,12 +73,14 @@ class IncursionController extends Controller
         }
 
         // Ensure the analysis belongs to user's organization
-        if ($analysis->pullRequest->repository->organization_id !== $organization->id) {
+        $repository = $this->resolveRepository($analysis->pullRequest);
+
+        if ($repository->organization_id !== $organization->id) {
             abort(403);
         }
 
         $analysis->load([
-            'pullRequest.repository',
+            'pullRequest',
             'pullRequest.author',
             'findings',
         ]);
@@ -87,7 +97,7 @@ class IncursionController extends Controller
             'analysis' => [
                 'id' => $analysis->id,
                 'timestamp' => $analysis->created_at->toISOString(),
-                'repository' => $analysis->pullRequest->repository->full_name,
+                'repository' => $repository->full_name,
                 'prNumber' => $analysis->pullRequest->github_pr_number,
                 'headSha' => $analysis->head_sha,
                 'author' => [
@@ -118,8 +128,8 @@ class IncursionController extends Controller
                 ])->toArray(),
             ],
             'repository' => [
-                'id' => $analysis->pullRequest->repository->id,
-                'commentOnPr' => $analysis->pullRequest->repository->comment_on_pr,
+                'id' => $repository->id,
+                'commentOnPr' => $repository->comment_on_pr,
             ],
         ]);
     }
@@ -136,7 +146,9 @@ class IncursionController extends Controller
             abort(403);
         }
 
-        if ($analysis->pullRequest->repository->organization_id !== $organization->id) {
+        $repository = $this->resolveRepository($analysis->pullRequest);
+
+        if ($repository->organization_id !== $organization->id) {
             abort(403);
         }
 
@@ -147,7 +159,7 @@ class IncursionController extends Controller
         // Re-dispatch the job
         AnalyzeIncursionJob::dispatch([
             'repository' => [
-                'id' => $analysis->pullRequest->repository->github_repo_id,
+                'id' => $repository->github_repo_id,
             ],
             'number' => $analysis->pullRequest->github_pr_number,
             'pull_request' => [
@@ -172,17 +184,33 @@ class IncursionController extends Controller
             abort(403);
         }
 
-        if ($analysis->pullRequest->repository->organization_id !== $organization->id) {
+        $repository = $this->resolveRepository($analysis->pullRequest);
+
+        if ($repository->organization_id !== $organization->id) {
             abort(403);
         }
 
-        if (! $analysis->pullRequest->repository->comment_on_pr) {
+        if (! $repository->comment_on_pr) {
             return back()->withErrors(['comment' => 'Comentários automáticos desativados para este repositório.']);
         }
 
-        // Dispatch job to post comment (F1 - to be implemented)
-        // PostReconCommentJob::dispatch($analysis);
+        // F1: post the Recon Report comment on the PR (deduped inside the job).
+        PostReconCommentJob::dispatch($analysis);
 
-        return back()->with('success', 'Solicitação de comentário enviada (F1 pendente).');
+        return back()->with('success', 'Recon Report enviado para a PR do GitHub.');
+    }
+
+    /**
+     * Resolve the Repository for a pull request.
+     *
+     * PullRequest is denormalized (D-U8-2): there is no FK to repositories,
+     * so we match on organization_id + github_repo_id — the same business key
+     * used when the repository was registered.
+     */
+    private function resolveRepository(PullRequest $pullRequest): Repository
+    {
+        return Repository::where('organization_id', $pullRequest->organization_id)
+            ->where('github_repo_id', $pullRequest->github_repo_id)
+            ->firstOrFail();
     }
 }
