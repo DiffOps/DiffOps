@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePage, Head, Link, useForm, router } from '@inertiajs/react';
 import { User, Mail, Bell, Shield, Globe, Save, Loader2, CheckCircle, Github } from 'lucide-react';
 import { Card, Button, Pill, Badge } from '@/components/Tactical';
@@ -9,6 +9,16 @@ export default function SettingsIndex() {
     const github = githubProp ?? { linked: false, username: null, avatar_url: null };
 
     const [linkError, setLinkError] = useState(false);
+
+    useEffect(() => {
+        if (sessionStorage.getItem('diffops.github.link.pending')) {
+            sessionStorage.removeItem('diffops.github.link.pending');
+            (async () => {
+                await exchangeAndBridgeSession();
+                router.reload();
+            })();
+        }
+    }, []);
 
     const handleLinkGitHub = async () => {
         setLinkError(false);
