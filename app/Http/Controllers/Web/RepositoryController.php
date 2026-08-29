@@ -8,6 +8,7 @@ use App\Http\Requests\Web\UpdateRepositoryRequest;
 use App\Models\Repository;
 use App\Services\GitHub\GitHubApiClient;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,6 +25,14 @@ class RepositoryController extends Controller
     {
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
+
+        if ($organization === null) {
+            // User without an active organization: show the empty state.
+            return Inertia::render('Repositories/Index', [
+                'repositories' => new LengthAwarePaginator([], 0, 15),
+                'webhookUrl' => url('/api/webhooks/github'),
+            ]);
+        }
 
         $repositories = Repository::where('organization_id', $organization->id)
             ->latest()
@@ -59,6 +68,12 @@ class RepositoryController extends Controller
     {
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
+
+        if ($organization === null) {
+            return back()->withErrors([
+                'organization_id' => 'Nenhuma organização ativa para registrar o repositório.',
+            ]);
+        }
 
         $githubRepoId = $request->validated()['github_repo_id'];
         $installationId = $request->validated()['installation_id'] ?? null;
@@ -97,6 +112,10 @@ class RepositoryController extends Controller
     {
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
+
+        if ($organization === null) {
+            abort(403);
+        }
 
         if ($repository->organization_id !== $organization->id) {
             abort(403);
@@ -149,6 +168,10 @@ class RepositoryController extends Controller
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
+        if ($organization === null) {
+            abort(403);
+        }
+
         if ($repository->organization_id !== $organization->id) {
             abort(403);
         }
@@ -165,6 +188,10 @@ class RepositoryController extends Controller
     {
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
+
+        if ($organization === null) {
+            abort(403);
+        }
 
         if ($repository->organization_id !== $organization->id) {
             abort(403);
