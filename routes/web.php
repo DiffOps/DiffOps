@@ -24,7 +24,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Protected routes
-Route::middleware(['verify.supabase.jwt'])->group(function () {
+Route::middleware(['verify.supabase.jwt', 'ensure.organization'])->group(function () {
     // Dashboard (raiz, conforme DiffOps.md §13)
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.alias');

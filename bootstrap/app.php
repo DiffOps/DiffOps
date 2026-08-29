@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureOrganization;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ValidateGitHubSignature;
 use App\Http\Middleware\VerifySupabaseJwt;
@@ -23,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // O cookie de sessão web carrega um JWT assinado pelo Supabase (integridade
         // própria); criptografia de cookie do framework fica desligada para este
         // nome, mantendo o comportamento determinístico em todos os ambientes.
-        $middleware->encryptCookies(except: ['diffops_session']);
+        $middleware->encryptCookies(except: ['diffops_session', 'diffops_org']);
 
         $middleware->web(append: [
             HandleInertiaRequests::class,
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'verify.supabase.jwt' => VerifySupabaseJwt::class,
+            'ensure.organization' => EnsureOrganization::class,
             'validate.github.signature' => ValidateGitHubSignature::class,
         ]);
     })
