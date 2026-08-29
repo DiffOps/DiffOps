@@ -4,6 +4,7 @@ namespace App\Services\OpenRouter;
 
 use App\Enums\AiDecisionValidity;
 use App\Services\Analysis\Chunk;
+use App\Services\OpenRouter\RateLimit\TokenBucket;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -47,7 +48,23 @@ class OpenRouterService
                 continue;
             }
 
+            // Token bucket: se o modelo esgotou a cota (free tier), pula para o
+            // próximo modelo da lista (fallback) em vez de disparar 429.
+            if ($this->rateLimitHabilitado() && ! $this->podeChamar($model)) {
+                continue;
+            }
+
             for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+                // Revalida a cota imediatamente antes de cada tentativa para não
+                // estourar o limite em retries (ex.: 5xx com bucket já esgotado).
+                if ($this->rateLimitHabilitado() && ! $this->podeChamar($model)) {
+                    break;
+                }
+
+                if ($this->rateLimitHabilitado()) {
+                    $this->bucket($model)->consumir(1);
+                }
+
                 $result = $this->attempt($chunk, $chunkIndex, $chunkCount, $model, $attempt, $apiKey);
                 $calls[] = $result;
 
@@ -70,6 +87,32 @@ class OpenRouterService
         }
 
         return $calls;
+    }
+
+    private function rateLimitHabilitado(): bool
+    {
+        return (bool) config('services.openrouter.rate_limit_enabled', true);
+    }
+
+    private function rpmPara(string $model): int
+    {
+        $perModel = config('services.openrouter.rpm_per_model', []);
+
+        if (is_array($perModel) && isset($perModel[$model])) {
+            return (int) $perModel[$model];
+        }
+
+        return (int) config('services.openrouter.rpm', 20);
+    }
+
+    private function bucket(string $model): TokenBucket
+    {
+        return new TokenBucket($model, $this->rpmPara($model), 60);
+    }
+
+    private function podeChamar(string $model): bool
+    {
+        return $this->bucket($model)->saldoDisponivel() > 0;
     }
 
     private function attempt(Chunk $chunk, int $chunkIndex, int $chunkCount, string $model, int $attempt, string $apiKey): AiCallResult
