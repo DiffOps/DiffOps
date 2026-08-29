@@ -9,6 +9,8 @@ export { VerdictBadge } from './VerdictBadge';
 export { DiffViewer } from './DiffViewer';
 export { StatusPill } from './StatusPill';
 export { IncursionRow } from './IncursionRow';
+export { OrgSwitcher } from './OrgSwitcher';
+export { EmptyOrgState } from './EmptyOrgState';
 
 export type {
     BadgeProps,

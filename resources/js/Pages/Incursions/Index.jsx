@@ -1,10 +1,19 @@
 import { usePage, Head } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
 import { GitBranch } from 'lucide-react';
-import { IncursionRow } from '@/components/Tactical';
+import { IncursionRow, EmptyOrgState } from '@/components/Tactical';
 
 export default function IncursionsIndex() {
-    const { incursions } = usePage().props;
+    const { incursions, currentOrganization = null } = usePage().props;
+
+    if (currentOrganization === null) {
+        return (
+            <EmptyOrgState
+                title="Nenhuma organização ativa"
+                message="Selecione ou vincule uma organização para visualizar as incursões."
+            />
+        );
+    }
 
     return (
         <>

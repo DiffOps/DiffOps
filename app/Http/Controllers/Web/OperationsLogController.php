@@ -18,6 +18,17 @@ class OperationsLogController extends Controller
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
+        if ($organization === null) {
+            // User without an active organization: show the empty state.
+            return Inertia::render('OperationsLog/Index', [
+                'logs' => [],
+                'filters' => [
+                    'actions' => [],
+                    'entityTypes' => [],
+                ],
+            ]);
+        }
+
         $query = AuditLog::with('user')
             ->whereHas('user', fn ($q) => $q->where('organization_id', $organization->id))
             ->latest('created_at');
@@ -85,6 +96,22 @@ class OperationsLogController extends Controller
     {
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
+
+        if ($organization === null) {
+            // No active organization: stream an empty combat-history CSV.
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="combat-history-'.now()->format('Y-m-d').'.csv"',
+            ];
+
+            $callback = function () {
+                $file = fopen('php://output', 'w');
+                fputcsv($file, ['ID', 'Timestamp', 'Action', 'Entity Type', 'Entity ID', 'User', 'Payload']);
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
 
         $query = AuditLog::with('user')
             ->whereHas('user', fn ($q) => $q->where('organization_id', $organization->id))

@@ -1,0 +1,35 @@
+<?php
+
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\TestJwtSigner;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    config()->set('services.supabase', [
+        'url' => TestJwtSigner::ISSUER_BASE,
+        'jwt_secret' => TestJwtSigner::SECRET,
+        'jwt_audience' => TestJwtSigner::AUDIENCE,
+        'jwt_clock_skew' => 30,
+        'jwks_url' => TestJwtSigner::ISSUER_BASE.'/auth/v1/.well-known/jwks.json',
+        'jwks_cache_ttl' => 3600,
+        'jwks_timeout' => 5,
+        'last_login_debounce' => 300,
+    ]);
+});
+
+it('renders an empty incursion list instead of erroring when the user has no organization', function () {
+    User::create([
+        'name' => 'Operator',
+        'email' => 'op@diffops.test',
+        'password' => 'secret',
+        'supabase_uid' => TestJwtSigner::SUB,
+    ]);
+
+    $this->withUnencryptedCookie('diffops_session', TestJwtSigner::sign())
+        ->get('/incursions')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('incursions', []));
+});

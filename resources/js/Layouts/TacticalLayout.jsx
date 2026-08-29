@@ -6,6 +6,7 @@ import { router } from '@inertiajs/react';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
+import { OrgSwitcher } from '@/components/Tactical';
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -19,7 +20,13 @@ const navigation = [
 
 export function TacticalLayout({ children }: { children: ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const { auth } = usePage().props;
+    const { auth, organizations = [], currentOrganization = null } = usePage().props;
+
+    const handleSwitchOrg = (id) => {
+        router.post('/org/switch', { organization_id: id }, {
+            onSuccess: () => router.reload(),
+        });
+    };
 
     return (
         <div className="min-h-screen bg-obsidian text-bone font-sans flex">
@@ -77,7 +84,7 @@ export function TacticalLayout({ children }: { children: ReactNode }) {
                     </nav>
 
                     {/* User section */}
-                    <div className="p-4 border-t border-graphite">
+                    <div className="p-4 border-t border-graphite space-y-3">
                         {auth?.user ? (
                             <div className="flex items-center gap-3">
                                 {auth.user.avatar_url && (
@@ -93,6 +100,13 @@ export function TacticalLayout({ children }: { children: ReactNode }) {
                                 </div>
                             </div>
                         ) : null}
+                        {auth?.user && (
+                            <OrgSwitcher
+                                organizations={organizations}
+                                currentOrganization={currentOrganization}
+                                onSwitch={handleSwitchOrg}
+                            />
+                        )}
                         {auth?.user && (
                             <button
                                 type="button"

@@ -19,6 +19,13 @@ class IncursionController extends Controller
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
+        if ($organization === null) {
+            // User without an active organization: show the empty state.
+            return Inertia::render('Incursions/Index', [
+                'incursions' => [],
+            ]);
+        }
+
         $incursions = Analysis::with(['pullRequest.repository', 'pullRequest.author'])
             ->whereHas('pullRequest.repository', fn ($q) => $q->where('organization_id', $organization->id))
             ->where('verdict', '!=', 'pending')
@@ -52,6 +59,10 @@ class IncursionController extends Controller
     {
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
+
+        if ($organization === null) {
+            abort(403);
+        }
 
         // Ensure the analysis belongs to user's organization
         if ($analysis->pullRequest->repository->organization_id !== $organization->id) {
@@ -121,6 +132,10 @@ class IncursionController extends Controller
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
 
+        if ($organization === null) {
+            abort(403);
+        }
+
         if ($analysis->pullRequest->repository->organization_id !== $organization->id) {
             abort(403);
         }
@@ -152,6 +167,10 @@ class IncursionController extends Controller
     {
         $user = auth('supabase')->user();
         $organization = $user->currentOrganization;
+
+        if ($organization === null) {
+            abort(403);
+        }
 
         if ($analysis->pullRequest->repository->organization_id !== $organization->id) {
             abort(403);
