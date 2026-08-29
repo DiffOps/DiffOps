@@ -24,6 +24,18 @@ class BriefingController extends Controller
         $days = $request->integer('days', 30);
         $since = Carbon::now()->subDays($days);
 
+        if ($organization === null) {
+            // User without an active organization: show the empty analytics state.
+            return Inertia::render('Briefing/Index', [
+                'period' => ['days' => $days, 'since' => $since->toISOString()],
+                'verdictDistribution' => [],
+                'threatHistogram' => [],
+                'defconTrend' => [],
+                'findingsByCategory' => [],
+                'topRepos' => [],
+            ]);
+        }
+
         $analyses = Analysis::whereHas('pullRequest.repository', fn ($q) => $q->where('organization_id', $organization->id))
             ->where('verdict', '!=', 'pending')
             ->where('created_at', '>=', $since);
