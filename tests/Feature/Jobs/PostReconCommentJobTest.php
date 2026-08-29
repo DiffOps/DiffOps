@@ -17,13 +17,10 @@ beforeEach(function (): void {
     // F1 prerequisite (documented in code): a GitHub App installation token is
     // required to post. Tests stub the token service so no real exchange/network
     // happens — the GitHub App only needs "Pull requests: Write" to post for real.
-    app()->bind(GitHubAppTokenService::class, fn () => new class
-    {
-        public function tokenForInstallation(int $id): string
-        {
-            return 'fake-install-token';
-        }
-    });
+    $tokens = Mockery::mock(GitHubAppTokenService::class);
+    $tokens->shouldReceive('tokenForInstallation')->andReturn('fake-install-token');
+
+    app()->instance(GitHubAppTokenService::class, $tokens);
 });
 
 function jobOrg(string $name = 'Recon'): Organization
@@ -40,7 +37,10 @@ function commentsBody(): string
         return '';
     }
 
-    return $posts->first()[0]->body();
+    // The request body is JSON {"body": "<markdown>"}; decode to inspect markdown.
+    $payload = json_decode($posts->first()[0]->body(), true);
+
+    return (string) ($payload['body'] ?? '');
 }
 
 it('posts exactly one github comment per assessment', function (): void {
