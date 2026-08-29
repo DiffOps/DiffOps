@@ -45,6 +45,13 @@ class User extends Authenticatable
     ];
 
     /**
+     * In-memory override of the active organization for the current request,
+     * set by the EnsureOrganization middleware from the diffops_org cookie.
+     * Not persisted: it only lives for the duration of a single request.
+     */
+    public ?Organization $currentOrganizationOverride = null;
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -101,15 +108,30 @@ class User extends Authenticatable
      * @return BelongsToMany<Organization, $this>
      */
     /**
-     * The organization context for the web UI: first membership (F17 will add
-     * explicit org switching). Null for fresh users before any membership.
+     * The organization context for the web UI.
+     *
+     * Returns the explicit override (set per-request by EnsureOrganization from
+     * the diffops_org cookie) when present, otherwise the user's first
+     * membership. Null for fresh users before any membership.
      */
     public function getCurrentOrganizationAttribute(): ?Organization
     {
+        if ($this->currentOrganizationOverride !== null) {
+            return $this->currentOrganizationOverride;
+        }
+
         /** @var Organization|null $first */
         $first = $this->organizations()->first();
 
         return $first;
+    }
+
+    /**
+     * Set the active organization override for the current request (non-persisted).
+     */
+    public function setCurrentOrganization(?Organization $org): void
+    {
+        $this->currentOrganizationOverride = $org;
     }
 
     public function organizations(): BelongsToMany
