@@ -8,6 +8,7 @@ use App\Models\OrganizationMember;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Str;
 use Tests\Support\ReconCommentFixtures;
 use Tests\Support\TestJwtSigner;
 
@@ -45,7 +46,7 @@ function reconUserForOrg(Organization $org): User
 }
 
 it('dispatches PostReconCommentJob when the repository allows comments', function (): void {
-    $org = Organization::create(['name' => 'Alpha', 'slug' => 'alpha-'.\Illuminate\Support\Str::uuid()]);
+    $org = Organization::create(['name' => 'Alpha', 'slug' => 'alpha-'.Str::uuid()]);
     reconUserForOrg($org);
     [$repo, $pr, $assessment] = ReconCommentFixtures::scenario($org, ['comment_on_pr' => true]);
 
@@ -62,7 +63,7 @@ it('dispatches PostReconCommentJob when the repository allows comments', functio
 });
 
 it('does not dispatch and flashes an error when comments are disabled on the repository', function (): void {
-    $org = Organization::create(['name' => 'Alpha', 'slug' => 'alpha-'.\Illuminate\Support\Str::uuid()]);
+    $org = Organization::create(['name' => 'Alpha', 'slug' => 'alpha-'.Str::uuid()]);
     reconUserForOrg($org);
     [$repo, $pr, $assessment] = ReconCommentFixtures::scenario($org, ['comment_on_pr' => false]);
 
@@ -76,8 +77,8 @@ it('does not dispatch and flashes an error when comments are disabled on the rep
 });
 
 it('aborts with 403 when the assessment belongs to another organization', function (): void {
-    $orgA = Organization::create(['name' => 'Alpha', 'slug' => 'alpha-'.\Illuminate\Support\Str::uuid()]);
-    $orgB = Organization::create(['name' => 'Bravo', 'slug' => 'bravo-'.\Illuminate\Support\Str::uuid()]);
+    $orgA = Organization::create(['name' => 'Alpha', 'slug' => 'alpha-'.Str::uuid()]);
+    $orgB = Organization::create(['name' => 'Bravo', 'slug' => 'bravo-'.Str::uuid()]);
     // User belongs only to org B; the assessment's repository lives in org A.
     reconUserForOrg($orgB);
     [$repo, $pr, $assessment] = ReconCommentFixtures::scenario($orgA, ['comment_on_pr' => true]);

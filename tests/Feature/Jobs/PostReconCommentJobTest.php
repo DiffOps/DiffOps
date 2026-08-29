@@ -9,6 +9,7 @@ use App\Services\GitHub\GitHubAppTokenService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Tests\Support\ReconCommentFixtures;
 
 uses(RefreshDatabase::class);
@@ -25,7 +26,7 @@ beforeEach(function (): void {
 
 function jobOrg(string $name = 'Recon'): Organization
 {
-    return Organization::create(['name' => $name, 'slug' => $name.'-'.\Illuminate\Support\Str::uuid()]);
+    return Organization::create(['name' => $name, 'slug' => $name.'-'.Str::uuid()]);
 }
 
 function commentsBody(): string
@@ -56,8 +57,7 @@ it('posts exactly one github comment per assessment', function (): void {
 
     PostReconCommentJob::dispatch($assessment);
 
-    Http::assertSent(fn (Request $request): bool =>
-        $request->url() === 'https://api.github.com/repos/alpha/web/issues/77/comments'
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.github.com/repos/alpha/web/issues/77/comments'
         && $request->method() === 'POST'
         && $request->hasHeader('Authorization', 'Bearer fake-install-token'));
 
