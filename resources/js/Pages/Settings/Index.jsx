@@ -1,11 +1,27 @@
 import { useState } from 'react';
-import { usePage, Head } from '@inertiajs/react';
-import { User, Mail, Bell, Shield, Globe, Save, Loader2, CheckCircle } from 'lucide-react';
-import { Link, useForm } from '@inertiajs/react';
+import { usePage, Head, Link, useForm, router } from '@inertiajs/react';
+import { User, Mail, Bell, Shield, Globe, Save, Loader2, CheckCircle, Github } from 'lucide-react';
 import { Card, Button, Pill, Badge } from '@/components/Tactical';
+import { supabase, linkGitHubIdentity, exchangeAndBridgeSession } from '@/lib/supabase';
 
 export default function SettingsIndex() {
-    const { user, preferences } = usePage().props;
+    const { user, preferences, github: githubProp } = usePage().props;
+    const github = githubProp ?? { linked: false, username: null, avatar_url: null };
+
+    const [linkError, setLinkError] = useState(false);
+
+    const handleLinkGitHub = async () => {
+        setLinkError(false);
+        try {
+            sessionStorage.setItem('diffops.github.link.pending', '1');
+            const url = await linkGitHubIdentity(window.location.origin + '/settings');
+            if (url) {
+                window.location.assign(url);
+            }
+        } catch {
+            setLinkError(true);
+        }
+    };
 
     const { data, setData, errors, processing, recentlySuccessful } = useForm({
         username: user.username,
@@ -85,6 +101,58 @@ export default function SettingsIndex() {
                             {errors.email && <p className="mt-1 text-sm text-defcon-red">{errors.email}</p>}
                         </div>
                     </div>
+                </Card>
+
+                {/* Linked Accounts Section */}
+                <Card>
+                    <h2 className="text-lg font-mono font-bold text-bone mb-4 flex items-center gap-2">
+                        <Github className="h-5 w-5 text-comms-cyan" />
+                        Contas vinculadas
+                    </h2>
+                    {github.linked ? (
+                        <div className="flex items-center gap-4">
+                            {github.avatar_url ? (
+                                <img
+                                    src={github.avatar_url}
+                                    alt={github.username ?? ''}
+                                    className="h-12 w-12 rounded-full bg-plate"
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                />
+                            ) : (
+                                <div className="h-12 w-12 rounded-full bg-plate flex items-center justify-center">
+                                    <Github className="h-6 w-6 text-barrel" />
+                                </div>
+                            )}
+                            <div>
+                                <p className="font-mono text-bone">@{github.username}</p>
+                                <Badge variant="clear" className="mt-1">VINCULADO</Badge>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {supabase === null ? (
+                                <p className="font-mono text-sm text-dusk">
+                                    Autenticação não configurada neste ambiente.
+                                </p>
+                            ) : (
+                                <p className="font-mono text-sm text-dusk">
+                                    Nenhuma conta GitHub vinculada.
+                                </p>
+                            )}
+                            <Button
+                                onClick={handleLinkGitHub}
+                                disabled={supabase === null}
+                                leftIcon={<Github />}
+                            >
+                                Vincular GitHub
+                            </Button>
+                        </div>
+                    )}
+                    {linkError && (
+                        <p className="mt-3 text-sm text-defcon-red">
+                            Falha ao vincular conta GitHub. Tente novamente.
+                        </p>
+                    )}
                 </Card>
 
                 {/* Notifications Section */}
