@@ -79,6 +79,12 @@ return [
         'retry_base_ms' => (int) env('OPENROUTER_RETRY_BASE_MS', 100),
         'circuit_threshold' => (int) env('OPENROUTER_CIRCUIT_THRESHOLD', 3),
         'circuit_cooldown' => (int) env('OPENROUTER_CIRCUIT_COOLDOWN', 60),
+        // Token bucket por modelo (free tier) — evita 429 do OpenRouter.
+        'rate_limit_enabled' => filter_var(env('OPENROUTER_RATE_LIMIT_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+        'rpm' => (int) env('OPENROUTER_RPM', 20),
+        'rpm_per_model' => is_array($rpmPerModel = json_decode((string) env('OPENROUTER_RPM_PER_MODEL', '{}'), true))
+            ? $rpmPerModel
+            : [],
     ],
 
 ];
