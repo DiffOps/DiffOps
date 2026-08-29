@@ -19,10 +19,10 @@ use Illuminate\Support\Facades\Cache;
 class TokenBucket
 {
     /**
-     * @param  string  $model         identificador do modelo (ex.: deepseek/deepseek-chat:free)
-     * @param  int     $capacity      capacidade máxima de requisições por janela
-     * @param  int     $windowSeconds janela de refill em segundos (default 60)
-     * @param  ?string $store         nome do store de cache (null = default)
+     * @param  string  $model  identificador do modelo (ex.: deepseek/deepseek-chat:free)
+     * @param  int  $capacity  capacidade máxima de requisições por janela
+     * @param  int  $windowSeconds  janela de refill em segundos (default 60)
+     * @param  ?string  $store  nome do store de cache (null = default)
      */
     public function __construct(
         private readonly string $model,
@@ -127,6 +127,7 @@ class TokenBucket
      * Serializa o read-modify-write com lock apenas em stores com LockProvider.
      *
      * @template T
+     *
      * @param  callable(): T  $callback
      * @return T
      */
