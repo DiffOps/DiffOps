@@ -63,6 +63,57 @@ class GitHubApiClient
         return $request->get($url, $query);
     }
 
+    /**
+     * POST a JSON payload to a GitHub REST endpoint with retry on 429/5xx.
+     *
+     * Used by F1 Recon Comment to create an issue comment on the pull request.
+     * 4xx responses are not retryable and throw.
+     *
+     * @return array<mixed>
+     */
+    public function post(string $path, array $json, ?int $installationId = null): array
+    {
+        $retries = (int) config('services.github.retries', 2);
+        $attempt = 0;
+
+        while (true) {
+            $response = $this->sendPost($path, $json, $installationId);
+
+            if ($response->successful()) {
+                return $response->json() ?? [];
+            }
+
+            if (($response->status() === 429 || $response->status() >= 500) && $attempt < $retries) {
+                $attempt++;
+                usleep(100_000 * $attempt);
+
+                continue;
+            }
+
+            $response->throw();
+        }
+    }
+
+    private function sendPost(string $path, array $json, ?int $installationId): Response
+    {
+        $request = Http::timeout((int) config('services.github.timeout', 15))
+            ->withHeaders([
+                'Accept' => 'application/vnd.github+json',
+                'X-GitHub-Api-Version' => '2022-11-28',
+                'User-Agent' => 'DiffOps',
+            ]);
+
+        if ($installationId !== null) {
+            $request = $request->withToken($this->tokens->tokenForInstallation($installationId));
+        }
+
+        $url = str_starts_with($path, 'http')
+            ? $path
+            : rtrim((string) config('services.github.api_url', 'https://api.github.com'), '/').$path;
+
+        return $request->post($url, $json);
+    }
+
     private function extractNextLink(Response $response): ?string
     {
         $link = $response->header('Link');
