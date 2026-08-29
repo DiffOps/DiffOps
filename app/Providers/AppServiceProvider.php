@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Auth\SupabaseJwtGuard;
+use App\Models\RiskAssessment;
 use Illuminate\Foundation\Vite;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -38,5 +40,9 @@ class AppServiceProvider extends ServiceProvider
 
             return new SupabaseJwtGuard($provider, $app['request'], $config);
         });
+
+        // Route model binding for the IncursionController "{analysis}" param,
+        // which resolves to a RiskAssessment (no dedicated Analysis model).
+        Route::model('analysis', RiskAssessment::class);
     }
 }
