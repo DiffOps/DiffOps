@@ -26,6 +26,11 @@ class SettingsController extends Controller
                 'avatar_url' => $user->avatar_url,
                 'role' => $profile?->role ?? 'operator',
             ],
+            'github' => [
+                'linked' => ! is_null($user->github_username),
+                'username' => $user->github_username,
+                'avatar_url' => $user->avatar_url,
+            ],
             'preferences' => [
                 'theme' => 'tactical', // fixed for now
                 'notifications' => [

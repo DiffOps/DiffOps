@@ -33,6 +33,28 @@ export interface RegisterResult {
 }
 
 /**
+ * Link a GitHub identity to the current Supabase user via the client-side
+ * OAuth flow. Returns the provider authorization URL to redirect to, or
+ * null when the Supabase client is not configured in this environment.
+ */
+export async function linkGitHubIdentity(redirectTo?: string): Promise<string | null> {
+    if (!supabase) {
+        return null;
+    }
+
+    const { data, error } = await supabase.auth.linkIdentity({
+        provider: 'github',
+        options: { redirectTo },
+    });
+
+    if (error) {
+        throw error;
+    }
+
+    return data?.url ?? null;
+}
+
+/**
  * Create the account without OAuth. When Supabase returns an immediate
  * session (email confirmation disabled), bridge it right away so the user
  * lands authenticated.
