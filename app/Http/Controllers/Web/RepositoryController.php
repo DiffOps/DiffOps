@@ -96,6 +96,7 @@ class RepositoryController extends Controller
                 'comment_on_pr' => false,
                 'escalate_on_hostile' => false,
                 'security_level' => 'standard',
+                'installation_id' => $installationId,
             ]
         );
 

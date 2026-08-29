@@ -25,6 +25,7 @@ class Repository extends Model
         'comment_on_pr',
         'escalate_on_hostile',
         'escalation_webhook_url',
+        'installation_id',
     ];
 
     /**
@@ -39,6 +40,7 @@ class Repository extends Model
             'comment_on_pr' => 'boolean',
             'escalate_on_hostile' => 'boolean',
             'github_repo_id' => 'integer',
+            'installation_id' => 'integer',
         ];
     }
 
