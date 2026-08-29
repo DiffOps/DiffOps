@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\AnalyzeIncursionJob;
+use App\Jobs\PostReconCommentJob;
 use App\Models\ContributorRisk;
 use App\Models\PullRequest;
 use App\Models\Repository;
@@ -193,10 +194,10 @@ class IncursionController extends Controller
             return back()->withErrors(['comment' => 'Comentários automáticos desativados para este repositório.']);
         }
 
-        // F1: dispatch the Recon Comment job (implemented in a later commit).
-        // PostReconCommentJob::dispatch($analysis);
+        // F1: post the Recon Report comment on the PR (deduped inside the job).
+        PostReconCommentJob::dispatch($analysis);
 
-        return back()->with('success', 'Solicitação de comentário enviada (F1 pendente).');
+        return back()->with('success', 'Recon Report enviado para a PR do GitHub.');
     }
 
     /**
