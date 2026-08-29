@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\BriefingController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\IncursionController;
 use App\Http\Controllers\Web\OperationsLogController;
+use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\RepositoryController;
 use App\Http\Controllers\Web\SettingsController;
 use App\Http\Controllers\Web\WatchlistController;
@@ -56,6 +57,9 @@ Route::middleware(['verify.supabase.jwt', 'ensure.organization'])->group(functio
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // Organization switch
+    Route::post('/org/switch', [OrganizationController::class, 'switch'])->name('org.switch');
 
 });
 
