@@ -1,10 +1,19 @@
 import { useState } from 'react';
 import { usePage, Head, Link } from '@inertiajs/react';
 import { Plus, Search, Filter, ExternalLink, Settings, Wifi, WifiOff, AlertTriangle, CheckCircle, XCircle, Trash2, Edit, Loader2, Copy, X } from 'lucide-react';
-import { Card, Button, Badge, StatusPill, Pill } from '@/components/Tactical';
+import { Card, Button, Badge, StatusPill, Pill, EmptyOrgState } from '@/components/Tactical';
 
 export default function RepositoriesIndex() {
-    const { repositories, webhookUrl } = usePage().props;
+    const { repositories, webhookUrl, currentOrganization = null } = usePage().props;
+
+    if (currentOrganization === null) {
+        return (
+            <EmptyOrgState
+                title="Nenhuma organização ativa"
+                message="Selecione ou vincule uma organização para gerenciar repositórios monitorados."
+            />
+        );
+    }
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({ github_repo_id: '', installation_id: '' });
     const [loading, setLoading] = useState(false);

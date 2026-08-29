@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { usePage, Head, Link, useForm } from '@inertiajs/react';
 import { Calendar, Filter, Download, Search, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, XCircle, Loader2, User, Database, GitBranch, FileText, Shield, Plus, Edit, Trash2, MessageSquare, RotateCcw } from 'lucide-react';
-import { Card, Button, Badge, Pill, StatusPill } from '@/components/Tactical';
+import { Card, Button, Badge, Pill, StatusPill, EmptyOrgState } from '@/components/Tactical';
 
 const ACTION_ICONS = {
     created: { icon: Plus, color: 'nv-green' },
@@ -23,7 +23,16 @@ const ENTITY_ICONS = {
 };
 
 export default function OperationsLogIndex() {
-    const { logs, filters } = usePage().props;
+    const { logs, filters, currentOrganization = null } = usePage().props;
+
+    if (currentOrganization === null) {
+        return (
+            <EmptyOrgState
+                title="Nenhuma organização ativa"
+                message="Selecione ou vincule uma organização para visualizar o combat history."
+            />
+        );
+    }
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
     const [actionFilter, setActionFilter] = useState('');

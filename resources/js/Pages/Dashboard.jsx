@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react';
 import { usePage, Head } from '@inertiajs/react';
 import { LayoutDashboard, GitBranch, Activity, Shield, TrendingUp, TrendingDown, Clock, Zap, Radio, Users } from 'lucide-react';
-import { HUDStat, IncursionRow, StatusPill } from '@/components/Tactical';
+import { HUDStat, IncursionRow, StatusPill, EmptyOrgState } from '@/components/Tactical';
 import { useRealtime } from '@/hooks/useRealtime';
 
 export default function Dashboard() {
-    const { stats, incursions, realtime } = usePage().props;
+    const { stats, incursions, realtime, currentOrganization = null } = usePage().props;
     const [feed, setFeed] = useState(incursions);
+
+    if (currentOrganization === null) {
+        return (
+            <EmptyOrgState
+                title="Nenhuma organização ativa"
+                message="Selecione ou vincule uma organização para acessar o dashboard tático de incursões."
+            />
+        );
+    }
     const [utcTime, setUtcTime] = useState(new Date().toISOString().slice(11, 19));
 
     // Update UTC clock

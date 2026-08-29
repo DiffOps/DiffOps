@@ -5,7 +5,7 @@ import {
     AlertTriangle, CheckCircle, XCircle, Shield, Zap, Download
 } from 'lucide-react';
 import {
-    Card, Badge, VerdictBadge, ThreatMeter, DefconMeter, Pill, HUDStat
+    Card, Badge, VerdictBadge, ThreatMeter, DefconMeter, Pill, HUDStat, EmptyOrgState
 } from '@/components/Tactical';
 import {
     PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -16,7 +16,16 @@ const VERDICT_COLORS = { clear: '#22c55e', flagged: '#f59e0b', hostile: '#ef4444
 const SEVERITY_COLORS = { critical: '#ef4444', high: '#f59e0b', medium: '#f59e0b', low: '#22c55e' };
 
 export default function BriefingIndex() {
-    const { period, verdictDistribution, threatHistogram, defconTrend, findingsByCategory, topRepos } = usePage().props;
+    const { period, verdictDistribution, threatHistogram, defconTrend, findingsByCategory, topRepos, currentOrganization = null } = usePage().props;
+
+    if (currentOrganization === null) {
+        return (
+            <EmptyOrgState
+                title="Nenhuma organização ativa"
+                message="Selecione ou vincule uma organização para gerar o battle briefing de analytics."
+            />
+        );
+    }
     const [days, setDays] = useState(period.days);
 
     const handlePeriodChange = (newDays) => {
