@@ -14,7 +14,7 @@ beforeEach(function (): void {
     config()->set('services.github.webhook_secret', 'the-webhook-secret');
 });
 
-function githubWebhookCall(string $event, array $payload, ?string $secret = 'the-webhook-secret'): TestResponse
+function auditGitHubWebhookCall(string $event, array $payload, ?string $secret = 'the-webhook-secret'): TestResponse
 {
     $rawBody = json_encode($payload);
     $server = [
@@ -33,7 +33,7 @@ function githubWebhookCall(string $event, array $payload, ?string $secret = 'the
 it('logs webhook.received when a valid signed pull_request event arrives', function (): void {
     Queue::fake();
 
-    githubWebhookCall('pull_request', GitHubWebhookFixtures::pullRequestOpened())
+    auditGitHubWebhookCall('pull_request', GitHubWebhookFixtures::pullRequestOpened())
         ->assertOk();
 
     $log = AuditLog::where('action', 'webhook.received')->first();
@@ -50,7 +50,7 @@ it('logs webhook.received when a valid signed pull_request event arrives', funct
 it('does not leak any raw secret values in the audit payload', function (): void {
     Queue::fake();
 
-    githubWebhookCall('pull_request', GitHubWebhookFixtures::pullRequestOpened())
+    auditGitHubWebhookCall('pull_request', GitHubWebhookFixtures::pullRequestOpened())
         ->assertOk();
 
     $log = AuditLog::where('action', 'webhook.received')->first();
@@ -66,7 +66,7 @@ it('does not leak any raw secret values in the audit payload', function (): void
 it('logs webhook.ping for a ping event', function (): void {
     Queue::fake();
 
-    githubWebhookCall('ping', GitHubWebhookFixtures::ping())
+    auditGitHubWebhookCall('ping', GitHubWebhookFixtures::ping())
         ->assertOk();
 
     $log = AuditLog::where('action', 'webhook.ping')->first();
