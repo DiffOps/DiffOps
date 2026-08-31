@@ -42,7 +42,7 @@ class GitHubWebhookController extends Controller
             );
             Log::info('Audit log created successfully', ['action' => $action, 'event' => $event]);
         } catch (\Throwable $e) {
-            Log::error('AuditLogService error: ' . $e->getMessage());
+            Log::error('AuditLogService error: '.$e->getMessage());
         }
 
         Log::info('Event processed', ['event' => $event, 'action' => $action]);
