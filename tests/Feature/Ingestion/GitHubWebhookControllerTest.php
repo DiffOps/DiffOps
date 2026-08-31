@@ -12,6 +12,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     config()->set('services.github.webhook_secret', 'the-webhook-secret');
+    Queue::fake();
 });
 
 function githubWebhookCall(string $event, array $payload, ?string $secret = 'the-webhook-secret'): TestResponse
@@ -31,8 +32,6 @@ function githubWebhookCall(string $event, array $payload, ?string $secret = 'the
 }
 
 it('accepts a signed pull_request opened event and dispatches the job', function (): void {
-    Queue::fake();
-
     githubWebhookCall('pull_request', GitHubWebhookFixtures::pullRequestOpened())
         ->assertOk();
 
@@ -40,8 +39,6 @@ it('accepts a signed pull_request opened event and dispatches the job', function
 });
 
 it('dispatches the job for every supported pull_request action', function (string $action, array $payload): void {
-    Queue::fake();
-
     githubWebhookCall('pull_request', $payload)->assertOk();
 
     Queue::assertPushed(ProcessIncursionJob::class, fn (ProcessIncursionJob $job): bool => $job->deliveryId === GitHubWebhookFixtures::DELIVERY_ID);
@@ -53,8 +50,6 @@ it('dispatches the job for every supported pull_request action', function (strin
 ]);
 
 it('answers 200 to a ping event without dispatching a job', function (): void {
-    Queue::fake();
-
     githubWebhookCall('ping', GitHubWebhookFixtures::ping())
         ->assertOk();
 
@@ -62,8 +57,6 @@ it('answers 200 to a ping event without dispatching a job', function (): void {
 });
 
 it('ignores webhook events that are not pull_request', function (): void {
-    Queue::fake();
-
     githubWebhookCall('issues', [
         'action' => 'opened',
         'issue' => ['number' => 1],
@@ -73,8 +66,6 @@ it('ignores webhook events that are not pull_request', function (): void {
 });
 
 it('ignores unsupported pull_request actions', function (): void {
-    Queue::fake();
-
     githubWebhookCall('pull_request', GitHubWebhookFixtures::pullRequestOpened(['action' => 'labeled']))
         ->assertOk();
 
