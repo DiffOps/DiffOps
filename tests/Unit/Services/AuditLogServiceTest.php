@@ -34,7 +34,7 @@ it('persists an audit log row via the service', function (): void {
 });
 
 it('masks payload values whose keys match secret patterns', function (): void {
-    $service = new AuditLogService();
+    $service = new AuditLogService;
 
     $sanitized = $service->sanitize([
         'api_key' => 'super-secret',
@@ -58,7 +58,7 @@ it('masks payload values whose keys match secret patterns', function (): void {
 });
 
 it('masks payload values matching secret value patterns', function (): void {
-    $service = new AuditLogService();
+    $service = new AuditLogService;
 
     $sanitized = $service->sanitize([
         'note' => 'ghp_abcdef1234567890',
@@ -78,7 +78,7 @@ it('masks payload values matching secret value patterns', function (): void {
 });
 
 it('recurses into nested arrays when sanitizing', function (): void {
-    $service = new AuditLogService();
+    $service = new AuditLogService;
 
     $sanitized = $service->sanitize([
         'level1' => [
@@ -96,7 +96,7 @@ it('recurses into nested arrays when sanitizing', function (): void {
 });
 
 it('preserves int, bool and null payload values', function (): void {
-    $service = new AuditLogService();
+    $service = new AuditLogService;
 
     $sanitized = $service->sanitize([
         'count' => 5,

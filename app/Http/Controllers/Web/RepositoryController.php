@@ -216,7 +216,7 @@ class RepositoryController extends Controller
         app(AuditLogService::class)->log(
             action: 'repository.removed',
             entityType: 'repository',
-        
+
             userId: $user?->id,
             entityId: (string) $repoId,
             payload: ['full_name' => $fullName],

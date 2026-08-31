@@ -51,10 +51,10 @@ final class AuditLogService
     /**
      * Persist a Combat History row.
      *
-     * @param  string  $action      verb.action (e.g. 'webhook.received')
+     * @param  string  $action  verb.action (e.g. 'webhook.received')
      * @param  string  $entityType  short entity class name (e.g. 'risk_assessment')
-     * @param  ?int    $userId      actor user id (null = system / anonymous)
-     * @param  ?string $entityId    uuid of the affected entity (or null)
+     * @param  ?int  $userId  actor user id (null = system / anonymous)
+     * @param  ?string  $entityId  uuid of the affected entity (or null)
      * @param  array<string, mixed>  $payload  free-form context (sanitised)
      */
     public function log(
@@ -89,16 +89,19 @@ final class AuditLogService
         foreach ($payload as $key => $value) {
             if (is_string($key) && $this->isSecretKey($key)) {
                 $result[$key] = '[REDACTED]';
+
                 continue;
             }
 
             if (is_array($value)) {
                 $result[$key] = $this->sanitize($value);
+
                 continue;
             }
 
             if (is_string($value) && $this->isSecretValue($value)) {
                 $result[$key] = '[REDACTED]';
+
                 continue;
             }
 

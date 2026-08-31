@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Jobs\AnalyzeIncursionJob;
 use App\Jobs\PostReconCommentJob;
-use App\Models\AuditLog;
 use App\Models\ContributorRisk;
 use App\Models\PullRequest;
 use App\Models\Repository;

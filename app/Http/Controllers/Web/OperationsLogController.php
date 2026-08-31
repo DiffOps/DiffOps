@@ -77,15 +77,15 @@ class OperationsLogController extends Controller
 
         // Get filter options
         $actions = AuditLog::where(function ($q) use ($organization) {
-                $q->whereHas('user', fn ($uq) => $uq->where('organization_id', $organization->id))
-                    ->orWhereNull('user_id');
-            })
+            $q->whereHas('user', fn ($uq) => $uq->where('organization_id', $organization->id))
+                ->orWhereNull('user_id');
+        })
             ->distinct('action')
             ->pluck('action');
         $entityTypes = AuditLog::where(function ($q) use ($organization) {
-                $q->whereHas('user', fn ($uq) => $uq->where('organization_id', $organization->id))
-                    ->orWhereNull('user_id');
-            })
+            $q->whereHas('user', fn ($uq) => $uq->where('organization_id', $organization->id))
+                ->orWhereNull('user_id');
+        })
             ->distinct('entity_type')
             ->pluck('entity_type');
 
