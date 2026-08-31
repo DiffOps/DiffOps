@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Jobs\AnalyzeIncursionJob;
-use App\Jobs\ProcessIncursionJob;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\TestResponse;
 use Tests\Support\GitHubWebhookFixtures;
+
+uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     config()->set('services.github.webhook_secret', 'the-webhook-secret');
