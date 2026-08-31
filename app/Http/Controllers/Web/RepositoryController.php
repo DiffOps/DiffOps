@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Web\StoreRepositoryRequest;
 use App\Http\Requests\Web\UpdateRepositoryRequest;
 use App\Models\Repository;
+use App\Services\AuditLogService;
 use App\Services\GitHub\GitHubApiClient;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -98,6 +99,14 @@ class RepositoryController extends Controller
                 'security_level' => 'standard',
                 'installation_id' => $installationId,
             ]
+        );
+
+        app(AuditLogService::class)->log(
+            action: 'repository.registered',
+            entityType: 'repository',
+            userId: $user?->id,
+            entityId: (string) $repository->id,
+            payload: ['full_name' => $repository->full_name],
         );
 
         // TODO: Create webhook via GitHub App (requires installation token)
@@ -198,7 +207,19 @@ class RepositoryController extends Controller
             abort(403);
         }
 
+        $fullName = $repository->full_name;
+        $repoId = $repository->id;
+
         $repository->delete();
+
+        app(AuditLogService::class)->log(
+            action: 'repository.removed',
+            entityType: 'repository',
+
+            userId: $user?->id,
+            entityId: (string) $repoId,
+            payload: ['full_name' => $fullName],
+        );
 
         return redirect()->route('repos.index')
             ->with('success', 'Repositório removido.');

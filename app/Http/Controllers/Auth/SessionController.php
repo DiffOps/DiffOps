@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Services\AuditLogService;
 use App\Services\SupabaseJwtService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,6 +33,18 @@ class SessionController extends Controller
         // TTL acompanha o access token do Supabase (~1h); renovação é feita
         // pelo supabase-js no cliente, que re-posta o novo token aqui.
         $ttl = max(5, (int) config('services.supabase.session_cookie_ttl', 60));
+
+        $user = User::where('supabase_uid', $claims['sub'] ?? null)->first();
+
+        app(AuditLogService::class)->log(
+            action: 'auth.login',
+            entityType: 'user',
+            userId: $user?->id,
+            entityId: $user?->id ? (string) $user->id : ($claims['sub'] ?? null),
+            payload: [
+                'sub' => $claims['sub'] ?? null,
+            ],
+        );
 
         // Rotas API não passam por AddQueuedCookiesToResponse: anexar direto.
         $response = response()->noContent();

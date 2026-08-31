@@ -9,6 +9,7 @@ use App\Models\ContributorRisk;
 use App\Models\PullRequest;
 use App\Models\Repository;
 use App\Models\RiskAssessment as Analysis;
+use App\Services\AuditLogService;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -169,6 +170,14 @@ class IncursionController extends Controller
             ],
         ], $analysis->id);
 
+        app(AuditLogService::class)->log(
+            action: 'incursion.rescan',
+            entityType: 'risk_assessment',
+            userId: $user?->id,
+            entityId: (string) $analysis->id,
+            payload: ['pr_number' => $analysis->pullRequest->github_pr_number],
+        );
+
         return back()->with('success', 'Re-scan iniciado. A análise será processada em breve.');
     }
 
@@ -196,6 +205,17 @@ class IncursionController extends Controller
 
         // F1: post the Recon Report comment on the PR (deduped inside the job).
         PostReconCommentJob::dispatch($analysis);
+
+        app(AuditLogService::class)->log(
+            action: 'recon_comment.dispatched',
+            entityType: 'risk_assessment',
+            userId: $user?->id,
+            entityId: (string) $analysis->id,
+            payload: [
+                'pr_number' => $analysis->pullRequest->github_pr_number,
+                'repo_full_name' => $repository->full_name ?? null,
+            ],
+        );
 
         return back()->with('success', 'Recon Report enviado para a PR do GitHub.');
     }

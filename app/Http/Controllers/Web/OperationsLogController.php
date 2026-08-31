@@ -30,7 +30,10 @@ class OperationsLogController extends Controller
         }
 
         $query = AuditLog::with('user')
-            ->whereHas('user', fn ($q) => $q->where('organization_id', $organization->id))
+            ->where(function ($q) use ($organization) {
+                $q->whereHas('user', fn ($uq) => $uq->where('organization_id', $organization->id))
+                    ->orWhereNull('user_id');
+            })
             ->latest('created_at');
 
         // Filters
@@ -73,10 +76,16 @@ class OperationsLogController extends Controller
         ]);
 
         // Get filter options
-        $actions = AuditLog::whereHas('user', fn ($q) => $q->where('organization_id', $organization->id))
+        $actions = AuditLog::where(function ($q) use ($organization) {
+            $q->whereHas('user', fn ($uq) => $uq->where('organization_id', $organization->id))
+                ->orWhereNull('user_id');
+        })
             ->distinct('action')
             ->pluck('action');
-        $entityTypes = AuditLog::whereHas('user', fn ($q) => $q->where('organization_id', $organization->id))
+        $entityTypes = AuditLog::where(function ($q) use ($organization) {
+            $q->whereHas('user', fn ($uq) => $uq->where('organization_id', $organization->id))
+                ->orWhereNull('user_id');
+        })
             ->distinct('entity_type')
             ->pluck('entity_type');
 
@@ -114,7 +123,10 @@ class OperationsLogController extends Controller
         }
 
         $query = AuditLog::with('user')
-            ->whereHas('user', fn ($q) => $q->where('organization_id', $organization->id))
+            ->where(function ($q) use ($organization) {
+                $q->whereHas('user', fn ($uq) => $uq->where('organization_id', $organization->id))
+                    ->orWhereNull('user_id');
+            })
             ->latest('created_at');
 
         // Apply same filters
