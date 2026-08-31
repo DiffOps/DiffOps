@@ -13,6 +13,7 @@ use App\Services\Analysis\Chunk;
 use App\Services\Analysis\DiffSanitizer;
 use App\Services\Analysis\HeuristicAuditor;
 use App\Services\OpenRouter\AiCallResult;
+use App\Services\AuditLogService;
 use App\Services\OpenRouter\OpenRouterService;
 use App\Services\Risk\RiskAssessmentBuilder;
 use App\Services\Risk\RiskScoringService;
@@ -135,6 +136,26 @@ class AnalyzeIncursionJob implements ShouldQueue
                 $assessment,
             );
         });
+
+        // Combat History: record the analysis result (system-initiated; user may be null if auth removed).
+        $assessment = RiskAssessment::where('pull_request_id', $pullRequest->id)
+            ->where('head_sha', $headSha)
+            ->first();
+
+        if ($assessment) {
+            app(AuditLogService::class)->log(
+                action: 'analysis.completed',
+                entityType: 'risk_assessment',
+                userId: null,
+                entityId: (string) $assessment->id,
+                payload: [
+                    'verdict' => $assessment->verdict,
+                    'defcon_level' => $assessment->defcon_level,
+                    'security_score' => $assessment->security_score,
+                    'is_degraded' => $assessment->is_degraded,
+                ],
+            );
+        }
     }
 
     /**
